@@ -28,12 +28,6 @@ export const App = () => {
 		getIngredients();
 	}, []);
 
-	console.log(
-		'%csrc/components/app/app.jsx:31 ingredients',
-		'color: #007acc;',
-		ingredients
-	);
-
 	if (error) {
 		return <p>Ошибка: {error}</p>;
 	}

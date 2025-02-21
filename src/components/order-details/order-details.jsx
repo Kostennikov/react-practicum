@@ -43,6 +43,6 @@ export const OrderDetails = (props) => {
 	);
 };
 
-Modal.propTypes = {
+OrderDetails.propTypes = {
 	orderId: PropTypes.number.isRequired,
 };
