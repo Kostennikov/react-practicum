@@ -13,6 +13,10 @@
 	text-size-adjust: 100%;
 }
 
+#root {
+	width: 100%;
+}
+
 a {
 	color: #646cff;
 	font-weight: 500;
@@ -26,10 +30,15 @@ a:hover {
 body {
 	display: flex;
 	justify-content: center;
-	align-items: center;
+
+	/* align-items: center; */
 	min-width: 320px;
 	min-height: 100vh;
 	margin: 0;
+}
+
+.page {
+	width: 100%;
 }
 
 h1 {

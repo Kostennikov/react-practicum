@@ -1,0 +1,18 @@
+.ingredient_details {
+	&__content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	&__structure {
+		display: flex;
+
+		&_item {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			color: #8585ad;
+		}
+	}
+}
