@@ -27,7 +27,7 @@ export const OrderDetails = (props) => {
 							идентификатор заказа
 						</div>
 						<div className={clsx(s.order_details__img, 'mb-15')}>
-							<img src={doneImage} alt='' />
+							<img src={doneImage} alt='done' />
 						</div>
 
 						<p className='text text_type_main-default mb-2'>
@@ -44,5 +44,5 @@ export const OrderDetails = (props) => {
 };
 
 OrderDetails.propTypes = {
-	orderId: PropTypes.number.isRequired,
+	orderId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 };
