@@ -5,7 +5,7 @@ export const createOrder = createAsyncThunk(
 	'order/createOrder',
 	async (ingredientIds, { rejectWithValue }) => {
 		try {
-			const response = await fetch(`${ORDER_API_URL}`, {
+			const response = await fetch(`${ORDER_API_URL}/order`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -26,17 +26,13 @@ export const createOrder = createAsyncThunk(
 const orderSlice = createSlice({
 	name: 'order',
 	initialState: {
-		// id,
 		order: null,
 		loading: false,
 		error: null,
 	},
 	reducers: {
 		// Очистка
-		clearOrder: (state) => {
-			state.order = null;
-			state.error = null;
-		},
+		clearOrder: () => initialState,
 	},
 	extraReducers: (builder) => {
 		builder
@@ -50,8 +46,10 @@ const orderSlice = createSlice({
 				state.order = action.payload; // сохраняем
 			})
 			.addCase(createOrder.rejected, (state, action) => {
+				state.order = null;
 				state.loading = false;
 				state.error = action.payload;
+				// return { ...initialState, error: action.payload };
 			});
 	},
 });

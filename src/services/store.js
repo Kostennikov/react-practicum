@@ -3,6 +3,7 @@ import ingredientsSlice from './ingredients/reducer.js';
 import orderSlice from './order/reducer.js';
 import constructorSlice from './burger-constructor/reducer.js';
 import singleIngredientSlice from './single-ingredient/reducer.js';
+import { composeWithDevTools } from '@redux-devtools/extension';
 
 const rootReducer = combineSlices(
 	ingredientsSlice,
@@ -15,5 +16,6 @@ export const configureStore = (initialState) => {
 	return createStore({
 		reducer: rootReducer,
 		preloadedState: initialState,
+		composeWithDevTools,
 	});
 };
