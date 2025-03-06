@@ -5,7 +5,7 @@ export const createOrder = createAsyncThunk(
 	'order/createOrder',
 	async (ingredientIds, { rejectWithValue }) => {
 		try {
-			const response = await fetch(`${ORDER_API_URL}/order`, {
+			const response = await fetch(`${ORDER_API_URL}`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -32,7 +32,10 @@ const orderSlice = createSlice({
 	},
 	reducers: {
 		// Очистка
-		clearOrder: () => initialState,
+		clearOrder: (state) => {
+			state.order = null;
+			state.error = null;
+		},
 	},
 	extraReducers: (builder) => {
 		builder
