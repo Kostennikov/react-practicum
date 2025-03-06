@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { clsx } from 'clsx';
 import PropTypes from 'prop-types';
 import { Tab } from '@ya.praktikum/react-developer-burger-ui-components';
@@ -9,11 +10,27 @@ import { Modal } from '../modal/modal';
 import { IngredientDetails } from './ingredient-details/ingredient-details';
 import { IngredientsGroup } from './ingredientsGroup/ingredients-group';
 
-export const BurgerIngredients = ({ ingredients }) => {
+import {
+	setBun,
+	addIngredient,
+	clearConstructor,
+	removeIngredient,
+} from '../../services/burger-constructor/reducer';
+
+export const BurgerIngredients = () => {
+	const dispatch = useDispatch();
 	const [current, setCurrent] = useState('bun');
 	const [modalOpen, setModalOpen] = useState(false);
 	const [selectedIngredient, setSelectedIngredient] = useState(null);
 
+	const { ingredients, loading, error } = useSelector(
+		(state) => state.ingredients ?? { ingredients: [] }
+	);
+	console.log(
+		'%csrc/components/burger-ingredients/burger-ingredients.jsx:23 ingredients',
+		'color: #007acc;',
+		ingredients
+	);
 	const openModal = (ingredient) => {
 		setSelectedIngredient(ingredient);
 		setModalOpen(true);
