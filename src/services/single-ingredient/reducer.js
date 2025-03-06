@@ -2,17 +2,15 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const singleIngredientSlice = createSlice({
 	name: 'singleIngredient',
-	initialState: null, // Перетаскиваемый ингредиент
+	initialState: null,
 	reducers: {
-		setSingleIngredient: (state, action) => action.payload, // Устанавливаем ингредиент
-		clearSingleIngredient: () => null, // Очищаем после завершения перетаскивания
+		setSingleIngredient: (state, action) => action.payload,
+		clearSingleIngredient: () => null,
 	},
 });
 
 export const { setSingleIngredient, clearSingleIngredient } =
 	singleIngredientSlice.actions;
 
-// export default singleIngredientSlice.reducer;
-
-export const { reducer: singleIngredientReducer } = singleIngredientSlice; // Экспортируем редьюсер
-export default singleIngredientSlice; // Экспортируем весь slice как default
+export const { reducer: singleIngredientReducer } = singleIngredientSlice;
+export default singleIngredientSlice;

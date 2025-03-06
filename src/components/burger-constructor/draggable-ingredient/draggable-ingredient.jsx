@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { clsx } from 'clsx';
+
 import {
 	ConstructorElement,
 	DragIcon,
@@ -14,92 +15,61 @@ import {
 	setSingleIngredient,
 	clearSingleIngredient,
 } from '../../../services/single-ingredient/reducer';
-
 import s from './draggable-ingredient.module.scss';
+import PropTypes from 'prop-types';
+import { burgerIngredientPropType } from '../../../utils/prop-types';
 
-export const DraggableIngredient = ({ key, item, index }) => {
+export const DraggableIngredient = ({ uid, index, item }) => {
 	const ref = useRef(null);
 	const dispatch = useDispatch();
 
 	// Поддержка drop
 	const [, drop] = useDrop({
 		accept: 'ingredient',
-		collect(monitor) {
-			return {
-				handlerId: monitor.getHandlerId(),
-			};
-		},
-		hover: (item, monitor) => {
+		hover: (draggedItem, monitor) => {
 			if (!ref.current) {
 				return;
 			}
-			// if (item.index !== index) {
-			// 	dispatch(moveIngredient({ fromIndex: item.index, toIndex: index }));
-			// 	// item.index = index;
-			// }
 
-			if (!ref.current) {
+			const dragUid = draggedItem.uid; // Уникальный ID перетаскиваемого элемента
+			const hoverUid = uid; // Уникальный ID текущего элемента
+
+			// Не заменяем элемент сам на себя
+			if (dragUid === hoverUid) {
 				return;
 			}
-			const dragIndex = item.index;
-			const hoverIndex = index;
-			// Don't replace items with themselves
-			if (dragIndex === hoverIndex) {
-				return;
-			}
-			// Determine rectangle on screen
-			const hoverBoundingRect = ref.current?.getBoundingClientRect();
-			// Get vertical middle
+
+			// Определяем координаты текущего элемента
+			const hoverBoundingRect = ref.current.getBoundingClientRect();
 			const hoverMiddleY =
 				(hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-			// Determine mouse position
 			const clientOffset = monitor.getClientOffset();
-			// Get pixels to the top
 			const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-			// Only perform the move when the mouse has crossed half of the items height
-			// When dragging downwards, only move when the cursor is below 50%
-			// When dragging upwards, only move when the cursor is above 50%
-			// Dragging downwards
+
+			// Определяем индексы для перемещения
+			const dragIndex = draggedItem.index;
+			const hoverIndex = index;
+
+			// Условия для перемещения
 			if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
 				return;
 			}
-			// Dragging upwards
 			if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
 				return;
 			}
-			// Time to actually perform the action
 
-			// dispatch(moveIngredient({ dragIndex, hoverIndex }));
+			// Выполняем перемещение
 			dispatch(moveIngredient({ fromIndex: dragIndex, toIndex: hoverIndex }));
-			// Note: we're mutating the monitor item here!
-			// Generally it's better to avoid mutations,
-			// but it's good here for the sake of performance
-			// to avoid expensive index searches.
-			item.index = hoverIndex;
+			draggedItem.index = hoverIndex; // Обновляем индекс перетаскиваемого элемента
 		},
-
-		// hover(item) {
-		// 	if (item.index !== index) {
-		// 		moveCard(item.index, index);
-		// 		item.index = index;
-		// 	}
-		// },
 	});
+
 	// Поддержка drag
-	// const [{ isDragging }, drag] = useDrag({
-	// 	type: 'ingredient',
-	// 	item: { index, ingredient: item },
-	// 	collect: (monitor) => ({
-	// 		isDragging: monitor.isDragging(),
-	// 	}),
-	// 	end: () => dispatch(clearSingleIngredient()),
-	// });
 	const [{ isDragging }, drag] = useDrag({
 		type: 'ingredient',
 		item: () => {
-			dispatch(setSingleIngredient(item)); // Устанавливаем текущий ингредиент
-			// return { index, ingredient: item };
-			return { ingredient: item, index };
+			dispatch(setSingleIngredient(item));
+			return { uid, index, ingredient: item }; // Передаем uid и index
 		},
 		collect: (monitor) => ({
 			isDragging: monitor.isDragging(),
@@ -109,11 +79,14 @@ export const DraggableIngredient = ({ key, item, index }) => {
 
 	drag(drop(ref)); // Соединяем Drag & Drop
 
+	const opacity = isDragging ? 0.4 : 1;
+	const dragCursor = isDragging ? 'grabbing' : 'grab';
+
 	return (
 		<li
 			ref={ref}
 			className={clsx(s.constructor__item)}
-			style={{ opacity: isDragging ? 0.5 : 1 }}>
+			style={{ opacity: opacity, cursor: dragCursor }}>
 			<DragIcon type='primary' />
 			<ConstructorElement
 				text={item.name}
@@ -123,4 +96,9 @@ export const DraggableIngredient = ({ key, item, index }) => {
 			/>
 		</li>
 	);
+};
+DraggableIngredient.propTypes = {
+	uid: PropTypes.string.isRequired,
+	index: PropTypes.number.isRequired,
+	item: burgerIngredientPropType.isRequired,
 };

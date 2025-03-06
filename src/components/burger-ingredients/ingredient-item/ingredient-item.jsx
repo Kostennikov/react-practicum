@@ -1,15 +1,21 @@
+import { useState, useMemo } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { useDrag } from 'react-dnd';
 import PropTypes from 'prop-types';
-import { useDispatch } from 'react-redux';
+import {
+	ingredientPropType,
+	functionPropType,
+} from '../../../utils/prop-types';
+
 import { clsx } from 'clsx';
 import {
 	CurrencyIcon,
 	Counter,
 } from '@ya.praktikum/react-developer-burger-ui-components';
-import {
-	setSingleIngredient,
-	clearSingleIngredient,
-} from '../../../services/single-ingredient/reducer';
+// import {
+// 	setSingleIngredient,
+// 	clearSingleIngredient,
+// } from '../../../services/single-ingredient/reducer';
 
 import {
 	setBun,
@@ -19,32 +25,38 @@ import {
 	moveIngredient,
 } from '../../../services/burger-constructor/reducer';
 
-import { ingredientPropType } from '../../../utils/prop-types';
-
 import s from './ingredient-item.module.scss';
 
 export const IngredientItem = ({ ingredient, openModal }) => {
 	const dispatch = useDispatch();
 
-	const [{ isDragging }, dragRef] = useDrag({
-		type: 'ingredient',
-		item: { ingredient }, // передаем сам объект ингредиента
-		end: (item, monitor) => {
-			console.log('item', item);
-			const dropResult = monitor.getDropResult();
-			// console.log(
-			// 	'%csrc/components/burger-ingredients/ingredient-item/ingredient-item.jsx:25 dropResult',
-			// 	'color: #007acc;',sZ
-			// 	dropResult
-			// );
+	const dragType = ingredient.type === 'bun' ? 'bun' : 'ingredient';
 
+	const { bun, burgerIngredients } = useSelector(
+		(state) => state.burgerConstructor ?? { bun: null, burgerIngredients: [] }
+	);
+
+	const count = useMemo(() => {
+		if (ingredient.type === 'bun') {
+			return bun && bun._id === ingredient._id ? 2 : 0;
+		} else {
+			return burgerIngredients.filter((item) => item._id === ingredient._id)
+				.length;
+		}
+	}, [ingredient, bun, burgerIngredients]);
+
+	const [{ isDragging }, dragRef] = useDrag({
+		type: dragType,
+		item: { ingredient },
+		end: (item, monitor) => {
+			const dropResult = monitor.getDropResult();
 			if (item.ingredient && dropResult) {
-				alert(`You dropped ${item.ingredient.name} into ${dropResult.name}!`);
-			}
-			if (item.ingredient.type === 'bun' && dropResult) {
-				dispatch(setBun(item.ingredient));
-			} else if (item.ingredient.type !== 'bun' && dropResult) {
-				dispatch(addIngredient(item.ingredient));
+				if (item.ingredient.type === 'bun') {
+					dispatch(setBun(item.ingredient));
+				} else {
+					dispatch(addIngredient(item.ingredient));
+				}
+				// alert(`You dropped ${item.ingredient.name} into ${dropResult.name}!`);
 			}
 		},
 		collect: (monitor) => ({
@@ -58,7 +70,6 @@ export const IngredientItem = ({ ingredient, openModal }) => {
 	return (
 		<div
 			className={clsx(s.ingredients__item)}
-			// ref={(node) => dragRef(dropRef(node))}
 			ref={dragRef}
 			style={{ opacity }}
 			onClick={() => openModal(ingredient)}
@@ -72,7 +83,7 @@ export const IngredientItem = ({ ingredient, openModal }) => {
 			}}
 			tabIndex={0}
 			role='button'>
-			<Counter count={1} size='default' extraClass='m-1' />
+			<Counter count={count} size='default' extraClass='m-1' />
 
 			<div className={clsx(s.ingredients__img)}>
 				<img src={ingredient.image} alt={ingredient.name} />
@@ -93,5 +104,5 @@ export const IngredientItem = ({ ingredient, openModal }) => {
 
 IngredientItem.propTypes = {
 	ingredient: ingredientPropType.isRequired,
-	openModal: PropTypes.func.isRequired,
+	openModal: functionPropType.isRequired,
 };

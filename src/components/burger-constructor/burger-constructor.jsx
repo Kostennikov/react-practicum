@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { clsx } from 'clsx';
 import { useDrop } from 'react-dnd';
@@ -25,6 +25,7 @@ import {
 	setSingleIngredient,
 	clearSingleIngredient,
 } from '../../services/single-ingredient/reducer';
+import { createOrder, clearOrder } from '../../services/order/reducer';
 
 import s from './burger-constructor.module.scss';
 import { DraggableIngredient } from './draggable-ingredient/draggable-ingredient';
@@ -36,29 +37,15 @@ export const BurgerConstructor = () => {
 	const { bun, burgerIngredients } = useSelector(
 		(state) => state.burgerConstructor ?? { bun: null, burgerIngredients: [] }
 	);
-	const [droppedBoxNames, setDroppedBoxNames] = useState([]);
+	const { order, loading, error } = useSelector((state) => state.order);
 
-	const [{ isOver: isOverBun, canDrop: canDropBun }, bunDropRef] = useDrop({
-		accept: 'ingredient',
-		drop: (ingredient) => {
-			// if (ingredient.type === 'bun') {
-			// 	dispatch(setBun(ingredient));
-			// }
-		},
-		collect: (monitor) => ({
-			isOver: monitor.isOver(),
-			canDrop: monitor.canDrop(),
-		}),
-	});
-
-	// Drop-зона для добавления ингредиентов
-	const [{ isOver: isOverIngredient, canDrop: canDropIngredient }, dropRef] =
+	// зона для верхней булочки
+	const [{ isOver: isOverTopBun, canDrop: canDropTopBun }, topBunDropRef] =
 		useDrop({
-			accept: 'ingredient',
-			drop: (ingredient) => {
-				// if (ingredient.type !== 'bun') {
-				// 	dispatch(addIngredient(ingredient)); // Добавляем ингредиент
-				// }
+			accept: 'bun',
+			drop: (item) => {
+				// dispatch(setBun(item.ingredient));
+				return { name: 'Top Bun' };
 			},
 			collect: (monitor) => ({
 				isOver: monitor.isOver(),
@@ -66,24 +53,60 @@ export const BurgerConstructor = () => {
 			}),
 		});
 
-	// const isActive = canDrop && isOver;
-	// let backgroundColor = '#222';
-	// if (isActive) {
-	// 	backgroundColor = 'darkgreen';
-	// } else if (canDrop) {
-	// 	backgroundColor = 'darkkhaki';
-	// }
+	// зона для нижней булочки
+	const [
+		{ isOver: isOverBottomBun, canDrop: canDropBottomBun },
+		bottomBunDropRef,
+	] = useDrop({
+		accept: 'bun',
+		drop: (item) => {
+			// dispatch(setBun(item.ingredient));
+			return { name: 'Bottom Bun' };
+		},
+		collect: (monitor) => ({
+			isOver: monitor.isOver(),
+			canDrop: monitor.canDrop(),
+		}),
+	});
 
-	const bunBackgroundColor = isOverBun
-		? 'darkgreen'
-		: canDropBun
-		? 'darkkhaki'
-		: 'transparent';
-	const ingredientBackgroundColor = isOverIngredient
-		? 'darkgreen'
-		: canDropIngredient
-		? 'darkkhaki'
-		: 'transparent';
+	// зона для добавления ингредиентов
+	const [{ isOver: isOverIngredient, canDrop: canDropIngredient }, dropRef] =
+		useDrop({
+			accept: 'ingredient',
+			drop: (item) => {
+				// if (ingredient.type !== 'bun') {
+				// 	dispatch(addIngredient(ingredient));
+				// }
+				// dispatch(addIngredient(item.ingredient));
+				return { name: 'Ingredient Area' };
+			},
+			collect: (monitor) => ({
+				isOver: monitor.isOver(),
+				canDrop: monitor.canDrop(),
+			}),
+		});
+
+	// формируем массив
+	const ingredientIds = useMemo(() => {
+		const ids = [];
+		if (bun) {
+			ids.push(bun._id); // верхняя булка
+		}
+		burgerIngredients.forEach((ingredient) => {
+			ids.push(ingredient._id); // ингредиенты
+		});
+		if (bun) {
+			ids.push(bun._id); // нижняя булка
+		}
+		return ids;
+	}, [bun, burgerIngredients]);
+
+	// отправляем запрос
+	const handleOrderSubmit = () => {
+		if (ingredientIds.length > 0) {
+			dispatch(createOrder(ingredientIds));
+		}
+	};
 
 	const totalPrice = useMemo(() => {
 		const bunPrice = bun ? bun.price * 2 : 0;
@@ -94,35 +117,38 @@ export const BurgerConstructor = () => {
 		return bunPrice + ingredientsPrice;
 	}, [bun, burgerIngredients]);
 
-	const handleDrop = useCallback(
-		(index, item) => {
-			const { name } = item;
-			setDroppedBoxNames(
-				update(droppedBoxNames, name ? { $push: [name] } : { $push: [] })
-			);
-			setDustbins(
-				update(dustbins, {
-					[index]: {
-						lastDroppedItem: {
-							$set: item,
-						},
-					},
-				})
-			);
-		},
-		[droppedBoxNames]
-	);
+	// useMemo(() => {
+	// 	if (order && !loading && !error) {
+	// 		setOrderModalOpen(true);
+	// 	}
+	// }, [order, loading, error]);
+
+	useEffect(() => {
+		if (order && !loading && !error) {
+			setOrderModalOpen(true);
+		}
+	}, [order, loading, error]);
+
+	const handleModalClose = () => {
+		setOrderModalOpen(false);
+		dispatch(clearOrder());
+		dispatch(clearOrder());
+		dispatch(clearConstructor());
+	};
+
 	return (
 		<>
 			<section className={clsx(s.constructor)}>
 				<div className={clsx(s.constructor__wrapper)}>
 					{/* Верхняя булочка */}
 					<div
-						ref={bunDropRef}
-						style={{ backgroundColor: bunBackgroundColor }}
-						onDrop={(bun) => handleDrop(index, bun)}>
+						ref={topBunDropRef}
+						className={clsx(s.dropZone, {
+							[s.dropZoneActive]: isOverTopBun,
+							[s.dropZoneCanDrop]: canDropTopBun && !isOverTopBun,
+						})}>
 						{bun ? (
-							<div className='pl-8'>
+							<div className={clsx(s.dropZone__bun, 'pl-8')}>
 								<ConstructorElement
 									type='top'
 									isLocked={true}
@@ -146,12 +172,16 @@ export const BurgerConstructor = () => {
 					{/* Список ингредиентов */}
 					<div
 						ref={dropRef}
-						style={{ backgroundColor: ingredientBackgroundColor }}>
+						className={clsx(s.dropZone, {
+							[s.dropZoneActive]: isOverIngredient,
+							[s.dropZoneCanDrop]: canDropIngredient && !isOverIngredient,
+						})}>
 						{burgerIngredients && burgerIngredients.length > 0 && (
 							<ul className={clsx(s.constructor__list)}>
 								{burgerIngredients.map((item, index) => (
 									<DraggableIngredient
-										key={item._id}
+										key={item.uid}
+										uid={item.uid}
 										index={index}
 										item={item}
 										// moveCard={moveCard}
@@ -171,9 +201,14 @@ export const BurgerConstructor = () => {
 					</div>
 
 					{/* Нижняя булочка */}
-					<div ref={bunDropRef} style={{ backgroundColor: bunBackgroundColor }}>
+					<div
+						ref={bottomBunDropRef}
+						className={clsx(s.dropZone, {
+							[s.dropZoneActive]: isOverBottomBun,
+							[s.dropZoneCanDrop]: canDropBottomBun && !isOverBottomBun,
+						})}>
 						{bun ? (
-							<div className='pl-8'>
+							<div className={clsx(s.dropZone__bun, 'pl-8')}>
 								<ConstructorElement
 									type='bottom'
 									isLocked={true}
@@ -196,6 +231,11 @@ export const BurgerConstructor = () => {
 
 					{/* Итоговая сумма и кнопка заказа */}
 					<div className={clsx(s.constructor__total, 'mt-10')}>
+						{error && (
+							<p className='text text_type_main-default text_color_error mr-8'>
+								{error}
+							</p>
+						)}
 						<div className={clsx(s.constructor__price, 'mr-10')}>
 							<p
 								className={clsx(
@@ -210,16 +250,22 @@ export const BurgerConstructor = () => {
 							htmlType='button'
 							type='primary'
 							size='large'
-							onClick={() => setOrderModalOpen(true)}
+							onClick={handleOrderSubmit}
 							disabled={!bun || burgerIngredients.length === 0}>
-							Оформить заказ
+							{loading ? 'Оформление...' : 'Оформить заказ'}
 						</Button>
 					</div>
 
 					{/* Модальное окно заказа */}
-					{orderModalOpen && (
+					{/* {orderModalOpen && (
 						<Modal onClose={() => setOrderModalOpen(false)}>
 							<OrderDetails />
+						</Modal>
+					)} */}
+
+					{orderModalOpen && (
+						<Modal onClose={handleModalClose}>
+							<OrderDetails orderId={order?.order?.number} />
 						</Modal>
 					)}
 				</div>
@@ -227,3 +273,5 @@ export const BurgerConstructor = () => {
 		</>
 	);
 };
+
+BurgerConstructor.propTypes = {};

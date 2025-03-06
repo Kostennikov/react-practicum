@@ -45,6 +45,8 @@
 			width: 100%;
 
 			list-style: none;
+
+			cursor: grab;
 		}
 	}
 
@@ -123,3 +125,35 @@
 // 	width: 300px;
 // 	height: 300px;
 // }
+
+.dropZone {
+}
+
+.dropZoneActive {
+	.constructor__bun {
+		// border: 1px dashed #4c4cff;
+		border: 1px dashed #7c1eb8;
+	}
+	.constructor__element {
+		border: 1px dashed #7c1eb8;
+	}
+	.constructor__ingredient {
+		border: 1px dashed #7c1eb8;
+	}
+}
+
+.dropZoneCanDrop {
+	.constructor__bun {
+		border: 1px dashed #5348f7;
+	}
+	.constructor__element {
+		border: 1px dashed #5348f7;
+	}
+	.constructor__ingredient {
+		border: 1px dashed #5348f7;
+	}
+}
+
+.dropZoneDefault {
+	background-color: transparent;
+}

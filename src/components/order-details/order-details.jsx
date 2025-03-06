@@ -16,7 +16,7 @@ export const OrderDetails = (props) => {
 								s.order_details__id,
 								'text text_type_digits-large mb-8'
 							)}>
-							{orderId}
+							<p className='text text_type_digits-large'>{orderId}</p>
 						</div>
 
 						<div

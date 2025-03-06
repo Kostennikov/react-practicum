@@ -1,4 +1,3 @@
-// src/ingredients/reducer.js (или ingredientsSlice.js)
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { API_URL } from '../../config';
 
@@ -43,5 +42,5 @@ const ingredientsSlice = createSlice({
 	},
 });
 
-export const { reducer: ingredientsReducer } = ingredientsSlice; // Экспортируем редьюсер
-export default ingredientsSlice; // Экспортируем весь slice как default
+export const { reducer: ingredientsReducer } = ingredientsSlice;
+export default ingredientsSlice;

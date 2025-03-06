@@ -2,35 +2,27 @@ import React, { useEffect } from 'react';
 import { clsx } from 'clsx';
 import { useDispatch, useSelector } from 'react-redux';
 import s from './app.module.scss';
-import { DndProvider } from 'react-dnd'; // Добавляем DndProvider
-import { HTML5Backend } from 'react-dnd-html5-backend'; // Бэкенд для HTML5
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import { BurgerConstructor } from '../burger-constructor/burger-constructor';
 import { BurgerIngredients } from '../burger-ingredients/burger-ingredients';
 import { AppHeader } from '../app-header/app-header';
-import { fetchIngredients } from '../../services/ingredients/reducer'; // Путь к вашему ingredientsSlice
+import { fetchIngredients } from '../../services/ingredients/reducer';
 
 export const App = () => {
 	const dispatch = useDispatch();
 
-	// Получаем данные из Redux store
 	const { ingredients, loading, error } = useSelector(
 		(state) => state.ingredients ?? { ingredients: [] }
 	);
 
-	// console.log(
-	// 	'%csrc/components/app/app.jsx:19 ingredients',
-	// 	'color: #007acc;',
-	// 	ingredients
-	// );
-	// Загружаем ингредиенты при монтировании компонента
 	useEffect(() => {
 		if (!ingredients.length && !loading && !error) {
 			dispatch(fetchIngredients());
 		}
 	}, [dispatch, ingredients.length, loading, error]);
 
-	// Обработка состояний загрузки и ошибки
 	if (loading) {
 		return <p>Загрузка...</p>;
 	}

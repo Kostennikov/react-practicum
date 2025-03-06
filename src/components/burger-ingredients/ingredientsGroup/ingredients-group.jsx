@@ -4,13 +4,23 @@ import { ingredientPropType } from '../../../utils/prop-types';
 import s from './ingredients-group.module.scss';
 import { IngredientItem } from '../ingredient-item/ingredient-item';
 
-export const IngredientsGroup = (props) => {
-	const { filteredIngredients, openModal } = props;
+export const IngredientsGroup = ({
+	filteredIngredients,
+	openModal,
+	bunRef,
+	sauceRef,
+	mainRef,
+}) => {
+	const refMap = { bun: bunRef, sauce: sauceRef, main: mainRef };
 
 	return (
 		<div>
 			{Object.entries(filteredIngredients).map(([category, ingredients]) => (
-				<div className={clsx(s.ingredients__block, 'mb-15')} key={category}>
+				<div
+					ref={refMap[category]}
+					data-section={category}
+					className={clsx(s.ingredients__block, 'mb-15')}
+					key={category}>
 					<h2
 						className={clsx(
 							s.ingredients__item_title,
@@ -42,4 +52,10 @@ IngredientsGroup.propTypes = {
 		main: PropTypes.arrayOf(ingredientPropType).isRequired,
 	}).isRequired,
 	openModal: PropTypes.func.isRequired,
+	bunRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) })
+		.isRequired,
+	sauceRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) })
+		.isRequired,
+	mainRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) })
+		.isRequired,
 };
