@@ -1,5 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { v4 as uuidv4 } from 'uuid';
+import { createSlice, nanoid } from '@reduxjs/toolkit';
 
 const constructorSlice = createSlice({
 	name: 'burgerConstructor',
@@ -13,14 +12,18 @@ const constructorSlice = createSlice({
 			state.bun = action.payload;
 		},
 		// Добавление начинки
-		addIngredient: (state, action) => {
-			// state.burgerIngredients.push(action.payload.ingredient || action.payload);
-
-			const ingredient = action.payload.ingredient || action.payload;
-			state.burgerIngredients.push({
-				...ingredient,
-				uid: uuidv4(),
-			});
+		addIngredient: {
+			reducer: (state, action) => {
+				state.burgerIngredients.push(action.payload);
+			},
+			prepare: (ingredient) => {
+				return {
+					payload: {
+						...ingredient,
+						uid: nanoid(),
+					},
+				};
+			},
 		},
 		// Удаление начинки по индексу
 		removeIngredient: (state, action) => {
