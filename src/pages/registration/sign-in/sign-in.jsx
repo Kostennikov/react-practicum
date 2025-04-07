@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { clsx } from 'clsx';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
+import { clsx } from 'clsx';
 import s from './sign-in.module.scss';
 import {
 	CurrencyIcon,
@@ -11,9 +13,24 @@ import {
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 
+import { loginUser } from '../../../services/auth/reducer';
+import { createOrder } from '../../../services/order/reducer';
+import { clearPendingOrder } from '../../../services/pending-order/reducer';
+
 export const SignIn = () => {
-	const [value, setValue] = useState('');
-	const [passwordValue, setPasswordValue] = useState('');
+	const [email, setEmail] = useState('');
+	const [password, setPassword] = useState('');
+	const dispatch = useDispatch();
+	const navigate = useNavigate();
+	const { loading, error, user, isAuthenticated } = useSelector(
+		(state) => state.auth
+	);
+	const { pendingOrder } = useSelector((state) => state.pendingOrder);
+
+	const handleSubmit = (e) => {
+		e.preventDefault();
+		dispatch(loginUser({ email, password }));
+	};
 
 	const inputRef = useRef(null);
 	const onIconClick = () => {
@@ -21,43 +38,71 @@ export const SignIn = () => {
 		alert('Icon Click Callback');
 	};
 
-	const onChange = (e) => {
-		setPasswordValue(e.target.value);
-	};
+	// После успешного логина проверяем pendingOrder
+	useEffect(() => {
+		if (user) {
+			if (pendingOrder) {
+				// Если есть сохраненный заказ, отправляем его
+				const { bun, burgerIngredients } = pendingOrder;
+				if (bun) {
+					const ingredientIds = [
+						bun._id,
+						...burgerIngredients.map((item) => item._id),
+						bun._id,
+					];
+					dispatch(createOrder(ingredientIds)).then(() => {
+						dispatch(clearPendingOrder()); // Очищаем сохраненный заказ
+						navigate('/', { replace: true }); // Перенаправляем на главную
+					});
+				} else {
+					dispatch(clearPendingOrder());
+					navigate('/', { replace: true }); // Если заказа нет, просто перенаправляем
+				}
+			} else {
+				navigate('/', { replace: true }); // Если нет сохраненного заказа, перенаправляем
+			}
+		}
+	}, [user, pendingOrder, dispatch, navigate]);
 
 	return (
 		<section className={clsx(s.sign_in)}>
 			<div className={clsx(s.sign_in__wrapper)}>
 				<h1 className='text text_type_main-large mb-6'>Вход</h1>
-				<Input
-					type={'email'}
-					placeholder={'E-mail'}
-					onChange={(e) => setValue(e.target.value)}
-					// icon={'CurrencyIcon'}
-					value={value}
-					name={'email'}
-					error={false}
-					ref={inputRef}
-					onIconClick={onIconClick}
-					errorText={'Ошибка'}
-					size={'default'}
-					extraClass='mb-6'
-				/>
+				<form onSubmit={handleSubmit}>
+					<Input
+						type={'email'}
+						placeholder={'E-mail'}
+						onChange={(e) => setEmail(e.target.value)}
+						// icon={'CurrencyIcon'}
+						value={email}
+						name={'email'}
+						error={false}
+						ref={inputRef}
+						onIconClick={onIconClick}
+						errorText={'Ошибка'}
+						size={'default'}
+						extraClass='mb-6'
+					/>
 
-				<PasswordInput
-					onChange={onChange}
-					value={passwordValue}
-					name={'password'}
-					extraClass='mb-6'
-				/>
+					<PasswordInput
+						onChange={(e) => setPassword(e.target.value)}
+						value={password}
+						name={'password'}
+						extraClass='mb-6'
+					/>
 
-				<Button
-					htmlType='button'
-					type='primary'
-					size='large'
-					extraClass='mb-20'>
-					Войти
-				</Button>
+					<Button
+						disabled={loading}
+						htmlType='submit'
+						type='primary'
+						size='large'
+						extraClass='mb-20'>
+						{loading ? 'Загрузка...' : 'Войти'}
+					</Button>
+				</form>
+
+				{error && <p style={{ color: 'red' }}>{error}</p>}
+				{isAuthenticated && <p>Вы успешно вошли!</p>}
 
 				<p className='text text_type_main-default text_color_inactive mb-4'>
 					Вы — новый пользователь?{' '}

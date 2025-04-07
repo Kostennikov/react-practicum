@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useDrop } from 'react-dnd';
 
@@ -26,17 +27,20 @@ import {
 	clearSingleIngredient,
 } from '../../services/single-ingredient/reducer';
 import { createOrder, clearOrder } from '../../services/order/reducer';
+import { setPendingOrder } from '../../services/pending-order/reducer';
 
 import s from './burger-constructor.module.scss';
 import { DraggableIngredient } from './draggable-ingredient/draggable-ingredient';
 
 export const BurgerConstructor = () => {
 	const dispatch = useDispatch();
+	const navigate = useNavigate();
 	const [orderModalOpen, setOrderModalOpen] = useState(false);
 
 	const { bun, burgerIngredients } = useSelector(
 		(state) => state.burgerConstructor ?? { bun: null, burgerIngredients: [] }
 	);
+	const { user } = useSelector((state) => state.auth);
 	const { order, loading, error } = useSelector((state) => state.order);
 
 	// зона для верхней булочки
@@ -101,13 +105,6 @@ export const BurgerConstructor = () => {
 		return ids;
 	}, [bun, burgerIngredients]);
 
-	// отправляем запрос
-	const handleOrderSubmit = () => {
-		if (ingredientIds.length > 0) {
-			dispatch(createOrder(ingredientIds));
-		}
-	};
-
 	const totalPrice = useMemo(() => {
 		const bunPrice = bun ? bun.price * 2 : 0;
 		const ingredientsPrice = burgerIngredients.reduce(
@@ -116,6 +113,35 @@ export const BurgerConstructor = () => {
 		);
 		return bunPrice + ingredientsPrice;
 	}, [bun, burgerIngredients]);
+
+	const handleOrderSubmit = () => {
+		// Проверяем авторизацию
+		if (!user) {
+			// Если пользователь не авторизован, сохраняем заказ и перенаправляем на логин
+			dispatch(
+				setPendingOrder({
+					bun,
+					burgerIngredients,
+				})
+			);
+			navigate('/sign-in');
+			return;
+		}
+
+		// Если пользователь авторизован, отправляем заказ
+		if (!bun) {
+			alert('Пожалуйста, выберите булку для заказа');
+			return;
+		}
+
+		const ingredientIds = [
+			bun._id,
+			...burgerIngredients.map((item) => item._id),
+			bun._id,
+		];
+
+		dispatch(createOrder(ingredientIds));
+	};
 
 	// useMemo(() => {
 	// 	if (order && !loading && !error) {

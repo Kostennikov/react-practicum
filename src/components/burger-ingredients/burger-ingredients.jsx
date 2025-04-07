@@ -1,17 +1,13 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { clsx } from 'clsx';
+import PropTypes from 'prop-types';
 import { Tab } from '@ya.praktikum/react-developer-burger-ui-components';
 import s from './burger-ingredients.module.scss';
-
-import { Modal } from '../modal/modal';
-import { IngredientDetails } from './ingredient-details/ingredient-details';
 import { IngredientsGroup } from './ingredientsGroup/ingredients-group';
 
-export const BurgerIngredients = () => {
+export const BurgerIngredients = ({ onIngredientClick }) => {
 	const [current, setCurrent] = useState('bun');
-	const [modalOpen, setModalOpen] = useState(false);
-	const [selectedIngredient, setSelectedIngredient] = useState(null);
 
 	const { ingredients } = useSelector(
 		(state) => state.ingredients ?? { ingredients: [] }
@@ -30,16 +26,6 @@ export const BurgerIngredients = () => {
 		}),
 		[ingredients]
 	);
-
-	const openModal = (ingredient) => {
-		setSelectedIngredient(ingredient);
-		setModalOpen(true);
-	};
-
-	const closeModal = () => {
-		setSelectedIngredient(null);
-		setModalOpen(false);
-	};
 
 	// Прокрутка по клику на таб
 	const handleTabClick = (value) => {
@@ -66,11 +52,10 @@ export const BurgerIngredients = () => {
 			},
 			{
 				root: containerRef.current,
-				threshold: 0.4, // Уменьшил до 40%
+				threshold: 0.4,
 			}
 		);
 
-		// Подключаем наблюдатель к каждой секции
 		[bunRef, sauceRef, mainRef].forEach((ref) => {
 			if (ref.current) observer.observe(ref.current);
 		});
@@ -89,7 +74,6 @@ export const BurgerIngredients = () => {
 			const { scrollTop, clientHeight } = containerRef.current;
 			const mainTop = mainRef.current.offsetTop;
 
-			// Проверяем, если верх mainRef достигнут
 			if (scrollTop + clientHeight >= mainTop) {
 				setCurrent('main');
 			}
@@ -126,18 +110,16 @@ export const BurgerIngredients = () => {
 			<div ref={containerRef} className={clsx(s.ingredients__items)}>
 				<IngredientsGroup
 					filteredIngredients={filteredIngredients}
-					openModal={openModal}
+					onIngredientClick={onIngredientClick}
 					bunRef={bunRef}
 					sauceRef={sauceRef}
 					mainRef={mainRef}
 				/>
 			</div>
-
-			{modalOpen && selectedIngredient && (
-				<Modal onClose={closeModal}>
-					<IngredientDetails ingredient={selectedIngredient} />
-				</Modal>
-			)}
 		</section>
 	);
+};
+
+BurgerIngredients.propTypes = {
+	onIngredientClick: PropTypes.func.isRequired,
 };

@@ -1,28 +1,44 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { useDispatch, useSelector } from 'react-redux';
 import s from './reset-password.module.scss';
 import {
-	CurrencyIcon,
-	Counter,
 	Input,
 	PasswordInput,
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 
 export const ResetPassword = () => {
-	const [value, setValue] = useState('');
-	const [passwordValue, setPasswordValue] = useState('');
+	const [password, setPassword] = useState('');
+	const [token, setToken] = useState('');
+	const [error, setError] = useState(null);
+	const navigate = useNavigate();
 
 	const inputRef = useRef(null);
 	const onIconClick = () => {
 		setTimeout(() => inputRef.current.focus(), 0);
-		alert('Icon Click Callback');
 	};
 
-	const onChange = (e) => {
-		setPasswordValue(e.target.value);
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		setError(null);
+		try {
+			const response = await fetch(
+				'https://norma.nomoreparties.space/api/password-reset/reset',
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ password, token }),
+				}
+			);
+			const data = await response.json();
+			if (!response.ok || !data.success) {
+				throw new Error(data.message || 'Ошибка сброса пароля');
+			}
+			navigate('/sign-in');
+		} catch (error) {
+			setError(error.message);
+		}
 	};
 
 	return (
@@ -31,38 +47,42 @@ export const ResetPassword = () => {
 				<h1 className='text text_type_main-large mb-6'>
 					Восстановление пароля
 				</h1>
-
-				<PasswordInput
-					placeholder={'Введите новый пароль'}
-					onChange={onChange}
-					value={passwordValue}
-					name={'password'}
-					extraClass='mb-6'
-				/>
-
-				<Input
-					type={'text'}
-					placeholder={'Введите код из письма'}
-					onChange={(e) => setValue(e.target.value)}
-					// icon={'CurrencyIcon'}
-					value={value}
-					name={'code'}
-					error={false}
-					ref={inputRef}
-					onIconClick={onIconClick}
-					errorText={'Ошибка'}
-					size={'default'}
-					extraClass='mb-6'
-				/>
-
-				<Button
-					htmlType='button'
-					type='primary'
-					size='large'
-					extraClass='mb-20'>
-					Сохранить
-				</Button>
-
+				<form onSubmit={handleSubmit}>
+					<PasswordInput
+						placeholder={'Введите новый пароль'}
+						onChange={(e) => setPassword(e.target.value)}
+						value={password}
+						name={'password'}
+						extraClass='mb-6'
+						required
+					/>
+					<Input
+						type={'text'}
+						placeholder={'Введите код из письма'}
+						onChange={(e) => setToken(e.target.value)}
+						value={token}
+						name={'token'}
+						error={!!error}
+						ref={inputRef}
+						onIconClick={onIconClick}
+						errorText={error}
+						size={'default'}
+						extraClass='mb-6'
+						required
+					/>
+					<Button
+						htmlType='submit'
+						type='primary'
+						size='large'
+						extraClass='mb-20'>
+						Сохранить
+					</Button>
+				</form>
+				{error && (
+					<p className='text text_type_main-default text_color_error'>
+						{error}
+					</p>
+				)}
 				<p className='text text_type_main-default text_color_inactive'>
 					Вспомнили пароль? <Link to='/sign-in'>Войти</Link>
 				</p>

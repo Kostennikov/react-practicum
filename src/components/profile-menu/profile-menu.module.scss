@@ -1,0 +1,38 @@
+.profile_menu {
+	&__nav {
+		max-width: 320px;
+
+		a {
+			display: flex;
+			align-items: center;
+			color: #8585ad;
+			height: 64px;
+			width: fit-content;
+		}
+		button {
+			display: flex;
+			align-items: center;
+			color: #8585ad;
+			height: 64px;
+			width: fit-content;
+			background-color: transparent;
+			&:hover {
+				background-color: transparent;
+				color: #f2f2f3;
+				border: 1px solid transparent;
+			}
+		}
+		.active {
+			color: #f2f2f3;
+		}
+
+		span {
+			display: block;
+			font-weight: 400;
+			font-size: 16px;
+			line-height: 1.5;
+			color: #8585ad;
+			opacity: 0.4;
+		}
+	}
+}

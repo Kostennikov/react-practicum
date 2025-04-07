@@ -6,7 +6,7 @@ import { IngredientItem } from '../ingredient-item/ingredient-item';
 
 export const IngredientsGroup = ({
 	filteredIngredients,
-	openModal,
+	onIngredientClick,
 	bunRef,
 	sauceRef,
 	mainRef,
@@ -35,7 +35,10 @@ export const IngredientsGroup = ({
 					<ul className={clsx(s.ingredients__list)}>
 						{ingredients.map((ingredient) => (
 							<li key={ingredient._id}>
-								<IngredientItem ingredient={ingredient} openModal={openModal} />
+								<IngredientItem
+									ingredient={ingredient}
+									onIngredientClick={onIngredientClick}
+								/>
 							</li>
 						))}
 					</ul>
@@ -51,7 +54,7 @@ IngredientsGroup.propTypes = {
 		sauce: PropTypes.arrayOf(ingredientPropType).isRequired,
 		main: PropTypes.arrayOf(ingredientPropType).isRequired,
 	}).isRequired,
-	openModal: PropTypes.func.isRequired,
+	onIngredientClick: PropTypes.func.isRequired,
 	bunRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) })
 		.isRequired,
 	sauceRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) })
