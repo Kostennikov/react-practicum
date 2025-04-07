@@ -78,7 +78,7 @@ export const ForgotPassword = () => {
 					</p>
 				)}
 				<p className='text text_type_main-default text_color_inactive'>
-					Вспомнили пароль? <Link to='/sign-in'>Войти</Link>
+					Вспомнили пароль? <Link to='/login'>Войти</Link>
 				</p>
 			</div>
 		</section>

@@ -19,7 +19,6 @@ import { Orders } from './pages/account/orders/orders';
 import { IngredientPage } from './pages/ingredient-page/ingredient-page';
 import { NotFound404 } from './pages/not-found/not-found';
 import { ProtectedRoute } from './components/protected-route/protected-route';
-import { AuthRoute } from './components/auth-route/auth-route';
 import { Modal } from './components/modal/modal';
 import { IngredientDetails } from './components/burger-ingredients/ingredient-details/ingredient-details';
 import { logoutUser, checkAuth } from './services/auth/reducer';
@@ -57,9 +56,9 @@ export const App = () => {
 		);
 	};
 
-	if (!authChecked) {
-		return <p>Проверка авторизации...</p>;
-	}
+	// if (!authChecked) {
+	// 	return <p>Проверка авторизации...</p>;
+	// }
 
 	return (
 		<div className='page'>
@@ -67,19 +66,30 @@ export const App = () => {
 			<Routes location={background || location}>
 				<Route path='/' element={<Home />} />
 				<Route path='/profile/orders' element={<Orders />} />
-				<Route path='/sign-in' element={<AuthRoute element={<SignIn />} />} />
 				<Route
-					path='/registration'
-					element={<AuthRoute element={<Registration />} />}
+					path='/login'
+					element={<ProtectedRoute element={<SignIn />} onlyUnAuth={true} />}
+				/>
+				<Route
+					path='/register'
+					element={
+						<ProtectedRoute element={<Registration />} onlyUnAuth={true} />
+					}
 				/>
 				<Route
 					path='/forgot-password'
-					element={<AuthRoute element={<ForgotPassword />} />}
+					element={
+						<ProtectedRoute element={<ForgotPassword />} onlyUnAuth={true} />
+					}
 				/>
 				<Route
 					path='/reset-password'
 					element={
-						<AuthRoute element={<ResetPassword />} restrictResetPassword />
+						<ProtectedRoute
+							element={<ResetPassword />}
+							onlyUnAuth={true}
+							requireForgotPassword={true}
+						/>
 					}
 				/>
 				<Route

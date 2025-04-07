@@ -35,7 +35,7 @@ export const Registration = () => {
 		e.preventDefault();
 		dispatch(registerUser({ email, password, name })).then((result) => {
 			if (result.type === registerUser.fulfilled.type) {
-				navigate('/sign-in'); // После регистрации перенаправлем на страницу входа
+				navigate('/login'); // После регистрации перенаправлем на страницу входа
 			}
 		});
 	};
@@ -95,7 +95,7 @@ export const Registration = () => {
 				{isAuthenticated && <p>Вы успешно зарегистрированы!</p>}
 
 				<p className='text text_type_main-default text_color_inactive'>
-					Уже зарегистрированы? <Link to='/sign-in'>Войти</Link>
+					Уже зарегистрированы? <Link to='/login'>Войти</Link>
 				</p>
 			</div>
 		</section>

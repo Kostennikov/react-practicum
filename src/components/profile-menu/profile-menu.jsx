@@ -20,7 +20,7 @@ export const ProfileMenu = () => {
 
 	const handleLogout = () => {
 		dispatch(logoutUser()).then(() => {
-			navigate('/sign-in');
+			navigate('/login');
 		});
 	};
 	return (

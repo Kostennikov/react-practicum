@@ -26,7 +26,8 @@ export const AppHeader = () => {
 									className={`${isActive ? s.active : ''}  ${clsx(
 										s.button__burger
 									)}`}>
-									<BurgerIcon type='primary' /> Конструктор
+									<BurgerIcon type={`${isActive ? 'primary' : 'secondary'}`} />
+									Конструктор
 								</Button>
 							)}
 						</NavLink>
@@ -51,7 +52,8 @@ export const AppHeader = () => {
 								className={`${isActive ? s.active : ''}  ${clsx(
 									s.button__lk
 								)}`}>
-								<ProfileIcon type='secondary' /> Личный кабинет
+								<ProfileIcon type={`${isActive ? 'primary' : 'secondary'}`} />
+								Личный кабинет
 							</Button>
 						)}
 					</NavLink>

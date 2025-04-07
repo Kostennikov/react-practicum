@@ -124,7 +124,7 @@ export const BurgerConstructor = () => {
 					burgerIngredients,
 				})
 			);
-			navigate('/sign-in');
+			navigate('/login');
 			return;
 		}
 

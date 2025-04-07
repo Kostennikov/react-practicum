@@ -35,7 +35,7 @@ export const ResetPassword = () => {
 			if (!response.ok || !data.success) {
 				throw new Error(data.message || 'Ошибка сброса пароля');
 			}
-			navigate('/sign-in');
+			navigate('/login');
 		} catch (error) {
 			setError(error.message);
 		}
@@ -84,7 +84,7 @@ export const ResetPassword = () => {
 					</p>
 				)}
 				<p className='text text_type_main-default text_color_inactive'>
-					Вспомнили пароль? <Link to='/sign-in'>Войти</Link>
+					Вспомнили пароль? <Link to='/login'>Войти</Link>
 				</p>
 			</div>
 		</section>

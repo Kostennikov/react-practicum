@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 
 import { clsx } from 'clsx';
 import s from './sign-in.module.scss';
@@ -22,6 +21,7 @@ export const SignIn = () => {
 	const [password, setPassword] = useState('');
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
+	const location = useLocation();
 	const { loading, error, user, isAuthenticated } = useSelector(
 		(state) => state.auth
 	);
@@ -41,6 +41,8 @@ export const SignIn = () => {
 	// После успешного логина проверяем pendingOrder
 	useEffect(() => {
 		if (user) {
+			const from = location.state?.from || { pathname: '/' };
+
 			if (pendingOrder) {
 				// Если есть сохраненный заказ, отправляем его
 				const { bun, burgerIngredients } = pendingOrder;
@@ -52,17 +54,17 @@ export const SignIn = () => {
 					];
 					dispatch(createOrder(ingredientIds)).then(() => {
 						dispatch(clearPendingOrder()); // Очищаем сохраненный заказ
-						navigate('/', { replace: true }); // Перенаправляем на главную
+						navigate(from, { replace: true }); // Перенаправляем на запрошенный маршрут
 					});
 				} else {
 					dispatch(clearPendingOrder());
-					navigate('/', { replace: true }); // Если заказа нет, просто перенаправляем
+					navigate(from, { replace: true }); // Если заказа нет, просто перенаправляем
 				}
 			} else {
-				navigate('/', { replace: true }); // Если нет сохраненного заказа, перенаправляем
+				navigate(from, { replace: true }); // Если нет сохраненного заказа, перенаправляем
 			}
 		}
-	}, [user, pendingOrder, dispatch, navigate]);
+	}, [user, pendingOrder, dispatch, navigate, location.state]);
 
 	return (
 		<section className={clsx(s.sign_in)}>
@@ -106,7 +108,7 @@ export const SignIn = () => {
 
 				<p className='text text_type_main-default text_color_inactive mb-4'>
 					Вы — новый пользователь?{' '}
-					<Link to='/registration'>Зарегистрироваться</Link>
+					<Link to='/register'>Зарегистрироваться</Link>
 				</p>
 				<p className='text text_type_main-default text_color_inactive'>
 					Забыли пароль? <Link to='/forgot-password'>Восстановить пароль</Link>
