@@ -87,7 +87,7 @@ export const Registration = () => {
 						extraClass='mb-20'
 						onChange={(e) => setPassword(e.target.value)}
 						disabled={loading}>
-						{loading ? 'Загрузка...' : 'Зарегистрироваться'}
+						{loading ? 'Регистрация...' : 'Зарегистрироваться'}
 					</Button>
 				</form>
 

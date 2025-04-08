@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
+import { Preloader } from '../preloader/preloader';
 
 export const ProtectedRoute = ({
 	element,
@@ -13,12 +14,8 @@ export const ProtectedRoute = ({
 	const location = useLocation();
 	const [hasVisitedForgotPassword, setHasVisitedForgotPassword] =
 		useState(false);
+	const [showPreloader, setShowPreloader] = useState(true);
 
-	console.log(
-		'%csrc/components/protected-route/protected-route.jsx:17 onlyUnAuth',
-		'color: #007acc;',
-		onlyUnAuth
-	);
 	// Отслеживаем посещение /forgot-password
 	useEffect(() => {
 		if (location.pathname === '/forgot-password') {
@@ -26,9 +23,19 @@ export const ProtectedRoute = ({
 		}
 	}, [location.pathname]);
 
-	// Если проверка авторизации еще не завершена, показываем загрузку
-	if (!authChecked) {
-		return <p>Проверка авторизации...</p>;
+	// Добавляем минимальную задержку для прелоадера
+	useEffect(() => {
+		if (authChecked) {
+			const timer = setTimeout(() => {
+				setShowPreloader(false);
+			}, 300); // Минимальная задержка 300 мс
+			return () => clearTimeout(timer);
+		}
+	}, [authChecked]);
+
+	// Если проверка авторизации еще не завершена или прелоадер еще должен отображаться
+	if (!authChecked || showPreloader) {
+		return <Preloader />;
 	}
 
 	// Логика для маршрутов, доступных только неавторизованным пользователям (onlyUnAuth = true)

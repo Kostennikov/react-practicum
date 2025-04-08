@@ -1,19 +1,19 @@
 import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import s from './forgot-password.module.scss';
 import {
 	Input,
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
-import { allowResetPassword } from '../../../services/auth/reducer';
+import { forgotPassword } from '../../../services/auth/reducer';
 
 export const ForgotPassword = () => {
 	const [value, setValue] = useState('');
-	const [error, setError] = useState(null);
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
+	const { loading, error } = useSelector((state) => state.auth);
 
 	const inputRef = useRef(null);
 	const onIconClick = () => {
@@ -22,25 +22,11 @@ export const ForgotPassword = () => {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		setError(null);
-		try {
-			const response = await fetch(
-				'https://norma.nomoreparties.space/api/password-reset',
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ email: value }),
-				}
-			);
-			const data = await response.json();
-			if (!response.ok || !data.success) {
-				throw new Error(data.message || 'Ошибка восстановления пароля');
+		dispatch(forgotPassword(value)).then((result) => {
+			if (result.type === forgotPassword.fulfilled.type) {
+				navigate('/reset-password', { replace: true });
 			}
-			dispatch(allowResetPassword());
-			navigate('/reset-password');
-		} catch (error) {
-			setError(error.message);
-		}
+		});
 	};
 
 	return (
@@ -68,8 +54,9 @@ export const ForgotPassword = () => {
 						htmlType='submit'
 						type='primary'
 						size='large'
-						extraClass='mb-20'>
-						Восстановить
+						extraClass='mb-20'
+						disabled={loading}>
+						{loading ? 'Загрузка...' : 'Восстановить'}
 					</Button>
 				</form>
 				{error && (

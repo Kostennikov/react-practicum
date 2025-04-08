@@ -1,18 +1,21 @@
 import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
+import { useDispatch, useSelector } from 'react-redux';
 import s from './reset-password.module.scss';
 import {
 	Input,
 	PasswordInput,
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
+import { resetPassword } from '../../../services/auth/reducer';
 
 export const ResetPassword = () => {
 	const [password, setPassword] = useState('');
 	const [token, setToken] = useState('');
-	const [error, setError] = useState(null);
+	const dispatch = useDispatch();
 	const navigate = useNavigate();
+	const { loading, error } = useSelector((state) => state.auth);
 
 	const inputRef = useRef(null);
 	const onIconClick = () => {
@@ -21,24 +24,11 @@ export const ResetPassword = () => {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		setError(null);
-		try {
-			const response = await fetch(
-				'https://norma.nomoreparties.space/api/password-reset/reset',
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ password, token }),
-				}
-			);
-			const data = await response.json();
-			if (!response.ok || !data.success) {
-				throw new Error(data.message || 'Ошибка сброса пароля');
+		dispatch(resetPassword({ password, token })).then((result) => {
+			if (result.type === resetPassword.fulfilled.type) {
+				navigate('/login', { replace: true });
 			}
-			navigate('/login');
-		} catch (error) {
-			setError(error.message);
-		}
+		});
 	};
 
 	return (
@@ -74,8 +64,9 @@ export const ResetPassword = () => {
 						htmlType='submit'
 						type='primary'
 						size='large'
-						extraClass='mb-20'>
-						Сохранить
+						extraClass='mb-20'
+						disabled={loading}>
+						{loading ? 'Загрузка...' : 'Сохранить'}
 					</Button>
 				</form>
 				{error && (

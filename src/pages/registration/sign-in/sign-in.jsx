@@ -99,7 +99,7 @@ export const SignIn = () => {
 						type='primary'
 						size='large'
 						extraClass='mb-20'>
-						{loading ? 'Загрузка...' : 'Войти'}
+						{loading ? 'Вход...' : 'Войти'}
 					</Button>
 				</form>
 

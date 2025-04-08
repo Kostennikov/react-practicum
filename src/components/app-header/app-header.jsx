@@ -40,9 +40,9 @@ export const AppHeader = () => {
 							<ListIcon type='secondary' /> Лента заказов
 						</Button>
 					</nav>
-
-					<Logo className={clsx(s.logo)} />
-
+					<NavLink to={'/'}>
+						<Logo className={clsx(s.logo)} />
+					</NavLink>
 					<NavLink to={'/profile'}>
 						{({ isActive }) => (
 							<Button

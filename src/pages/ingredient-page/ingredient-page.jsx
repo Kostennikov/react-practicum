@@ -1,23 +1,15 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { clsx } from 'clsx';
 import s from './ingredient-page.module.scss';
-import { fetchIngredients } from '../../services/ingredients/reducer';
 import { IngredientDetails } from '../../components/burger-ingredients/ingredient-details/ingredient-details';
 
 export const IngredientPage = () => {
 	const { id } = useParams();
-	const dispatch = useDispatch();
 	const { ingredients, loading, error } = useSelector(
 		(state) => state.ingredients
 	);
-
-	useEffect(() => {
-		if (!ingredients.length) {
-			dispatch(fetchIngredients());
-		}
-	}, [dispatch, ingredients.length]);
 
 	const ingredient = ingredients.find((item) => item._id === id);
 

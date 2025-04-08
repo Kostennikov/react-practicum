@@ -1,6 +1,15 @@
+// src/services/auth/reducer.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-
-const API_URL = 'https://norma.nomoreparties.space/api';
+import {
+	AUTH_LOGIN_ENDPOINT,
+	AUTH_REGISTER_ENDPOINT,
+	AUTH_LOGOUT_ENDPOINT,
+	AUTH_TOKEN_ENDPOINT,
+	AUTH_USER_ENDPOINT,
+	PASSWORD_RESET_ENDPOINT,
+	PASSWORD_RESET_CONFIRM_ENDPOINT,
+} from '../../config';
+import { request } from '../../utils/api';
 
 // Утилиты для работы с куками
 const setCookie = (name, value, options = {}) => {
@@ -39,14 +48,11 @@ export const registerUser = createAsyncThunk(
 	'auth/registerUser',
 	async ({ email, password, name }, { rejectWithValue }) => {
 		try {
-			const response = await fetch(`${API_URL}/auth/register`, {
+			const data = await request(AUTH_REGISTER_ENDPOINT, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ email, password, name }),
 			});
-			if (!response.ok) throw new Error('Ошибка регистрации');
-			const data = await response.json();
-			if (!data.success) throw new Error(data.message || 'Ошибка регистрации');
+
 			setCookie('accessToken', data.accessToken.split('Bearer ')[1], {
 				expires: 20 * 60,
 			});
@@ -63,14 +69,11 @@ export const loginUser = createAsyncThunk(
 	'auth/loginUser',
 	async ({ email, password }, { rejectWithValue }) => {
 		try {
-			const response = await fetch(`${API_URL}/auth/login`, {
+			const data = await request(AUTH_LOGIN_ENDPOINT, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ email, password }),
 			});
-			if (!response.ok) throw new Error('Ошибка авторизации');
-			const data = await response.json();
-			if (!data.success) throw new Error(data.message || 'Ошибка авторизации');
+
 			setCookie('accessToken', data.accessToken.split('Bearer ')[1], {
 				expires: 20 * 60,
 			});
@@ -89,14 +92,12 @@ export const logoutUser = createAsyncThunk(
 		try {
 			const refreshToken = localStorage.getItem('refreshToken');
 			if (!refreshToken) throw new Error('Токен обновления отсутствует');
-			const response = await fetch(`${API_URL}/auth/logout`, {
+
+			const data = await request(AUTH_LOGOUT_ENDPOINT, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ token: refreshToken }),
 			});
-			if (!response.ok) throw new Error('Ошибка выхода');
-			const data = await response.json();
-			if (!data.success) throw new Error(data.message || 'Ошибка выхода');
+
 			deleteCookie('accessToken');
 			localStorage.removeItem('refreshToken');
 			return data;
@@ -106,28 +107,21 @@ export const logoutUser = createAsyncThunk(
 	}
 );
 
+// Получение данных пользователя
 export const getUser = createAsyncThunk(
 	'auth/getUser',
-	async (_, { rejectWithValue, getState }) => {
+	async (_, { rejectWithValue }) => {
 		try {
 			const accessToken = getCookie('accessToken');
 			if (!accessToken) throw new Error('Токен отсутствует');
 
-			const response = await fetch(
-				'https://norma.nomoreparties.space/api/auth/user',
-				{
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${accessToken}`,
-					},
-				}
-			);
+			const data = await request(AUTH_USER_ENDPOINT, {
+				method: 'GET',
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+				},
+			});
 
-			if (!response.ok) throw new Error('Ошибка получения данных пользователя');
-			const data = await response.json();
-			if (!data.success)
-				throw new Error(data.message || 'Ошибка получения данных');
 			return data.user;
 		} catch (error) {
 			return rejectWithValue(error.message);
@@ -135,9 +129,10 @@ export const getUser = createAsyncThunk(
 	}
 );
 
+// Обновление данных пользователя
 export const updateUser = createAsyncThunk(
 	'auth/updateUser',
-	async ({ name, email, password }, { rejectWithValue, getState }) => {
+	async ({ name, email, password }, { rejectWithValue }) => {
 		try {
 			const accessToken = getCookie('accessToken');
 			if (!accessToken) throw new Error('Токен отсутствует');
@@ -145,23 +140,14 @@ export const updateUser = createAsyncThunk(
 			const body = { name, email };
 			// if (password) body.password = password;
 
-			const response = await fetch(
-				'https://norma.nomoreparties.space/api/auth/user',
-				{
-					method: 'PATCH',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${accessToken}`,
-					},
-					body: JSON.stringify(body),
-				}
-			);
+			const data = await request(AUTH_USER_ENDPOINT, {
+				method: 'PATCH',
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+				},
+				body: JSON.stringify(body),
+			});
 
-			if (!response.ok)
-				throw new Error('Ошибка обновления данных пользователя');
-			const data = await response.json();
-			if (!data.success)
-				throw new Error(data.message || 'Ошибка обновления данных');
 			return data.user;
 		} catch (error) {
 			return rejectWithValue(error.message);
@@ -176,15 +162,12 @@ export const refreshToken = createAsyncThunk(
 		try {
 			const refreshToken = localStorage.getItem('refreshToken');
 			if (!refreshToken) throw new Error('Токен обновления отсутствует');
-			const response = await fetch(`${API_URL}/auth/token`, {
+
+			const data = await request(AUTH_TOKEN_ENDPOINT, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ token: refreshToken }),
 			});
-			if (!response.ok) throw new Error('Ошибка обновления токена');
-			const data = await response.json();
-			if (!data.success)
-				throw new Error(data.message || 'Ошибка обновления токена');
+
 			setCookie('accessToken', data.accessToken.split('Bearer ')[1], {
 				expires: 20 * 60,
 			});
@@ -208,37 +191,67 @@ export const checkAuth = createAsyncThunk(
 					throw new Error('Не удалось обновить токен');
 			}
 
-			const response = await fetch(`${API_URL}/auth/user`, {
+			const data = await request(AUTH_USER_ENDPOINT, {
 				method: 'GET',
 				headers: {
-					'Content-Type': 'application/json',
 					Authorization: `Bearer ${getCookie('accessToken')}`,
 				},
 			});
 
-			if (!response.ok) {
-				if (response.status === 401) {
-					const refreshResult = await dispatch(refreshToken()).unwrap();
-					if (!refreshResult.success)
-						throw new Error('Не удалось обновить токен');
-					const retryResponse = await fetch(`${API_URL}/auth/user`, {
-						method: 'GET',
-						headers: {
-							'Content-Type': 'application/json',
-							Authorization: `Bearer ${getCookie('accessToken')}`,
-						},
-					});
-					if (!retryResponse.ok) throw new Error('Ошибка проверки авторизации');
-					const retryData = await retryResponse.json();
-					if (!retryData.success)
-						throw new Error(retryData.message || 'Ошибка проверки');
-					return retryData;
-				}
-				throw new Error('Ошибка проверки авторизации');
+			return data;
+		} catch (error) {
+			if (error.message === 'Не удалось обновить токен') {
+				throw error; // Пропускаем повторную попытку
 			}
 
-			const data = await response.json();
-			if (!data.success) throw new Error(data.message || 'Ошибка проверки');
+			// Если ошибка связана с истекшим токеном, пробуем обновить
+			if (error.message.includes('401')) {
+				const refreshResult = await dispatch(refreshToken()).unwrap();
+				if (!refreshResult.success)
+					throw new Error('Не удалось обновить токен');
+
+				const retryData = await request(AUTH_USER_ENDPOINT, {
+					method: 'GET',
+					headers: {
+						Authorization: `Bearer ${getCookie('accessToken')}`,
+					},
+				});
+
+				return retryData;
+			}
+
+			throw error;
+		}
+	}
+);
+
+// Экшен для запроса сброса пароля
+export const forgotPassword = createAsyncThunk(
+	'auth/forgotPassword',
+	async (email, { rejectWithValue }) => {
+		try {
+			const data = await request(PASSWORD_RESET_ENDPOINT, {
+				method: 'POST',
+				body: JSON.stringify({ email }),
+			});
+
+			return data;
+		} catch (error) {
+			return rejectWithValue(error.message);
+		}
+	}
+);
+
+// Экшен для подтверждения сброса пароля
+export const resetPassword = createAsyncThunk(
+	'auth/resetPassword',
+	async ({ password, token }, { rejectWithValue }) => {
+		try {
+			const data = await request(PASSWORD_RESET_CONFIRM_ENDPOINT, {
+				method: 'POST',
+				body: JSON.stringify({ password, token }),
+			});
+
 			return data;
 		} catch (error) {
 			return rejectWithValue(error.message);
@@ -360,6 +373,30 @@ const authSlice = createSlice({
 				state.user = action.payload;
 			})
 			.addCase(updateUser.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload;
+			})
+			// forgotPassword
+			.addCase(forgotPassword.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(forgotPassword.fulfilled, (state) => {
+				state.loading = false;
+			})
+			.addCase(forgotPassword.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload;
+			})
+			// resetPassword
+			.addCase(resetPassword.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(resetPassword.fulfilled, (state) => {
+				state.loading = false;
+			})
+			.addCase(resetPassword.rejected, (state, action) => {
 				state.loading = false;
 				state.error = action.payload;
 			});

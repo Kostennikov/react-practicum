@@ -22,19 +22,27 @@ import { ProtectedRoute } from './components/protected-route/protected-route';
 import { Modal } from './components/modal/modal';
 import { IngredientDetails } from './components/burger-ingredients/ingredient-details/ingredient-details';
 import { logoutUser, checkAuth } from './services/auth/reducer';
+import { fetchIngredients } from './services/ingredients/reducer';
 
 export const App = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { user, authChecked } = useSelector((state) => state.auth);
-	const { ingredients } = useSelector((state) => state.ingredients);
+	const { ingredients, loading: ingredientsLoading } = useSelector(
+		(state) => state.ingredients
+	);
 
 	useEffect(() => {
+		// Проверяем авторизацию
 		if (!authChecked) {
 			dispatch(checkAuth());
 		}
-	}, [dispatch, authChecked]);
+		// Загружаем ингредиенты
+		if (!ingredients.length) {
+			dispatch(fetchIngredients());
+		}
+	}, [dispatch, authChecked, ingredients.length]);
 
 	const background = location.state?.background;
 
@@ -47,7 +55,8 @@ export const App = () => {
 		const { id } = useParams();
 		const ingredient = ingredients.find((item) => item._id === id); // Находим ингредиент в сторе
 
-		if (!ingredient) return null; // Если ингредиент не найден, ничего не рендерим
+		if (ingredientsLoading) return <p>Загрузка ингредиентов...</p>;
+		if (!ingredient) return <p>Ингредиент не найден</p>;
 
 		return (
 			<Modal onClose={handleCloseModal}>
