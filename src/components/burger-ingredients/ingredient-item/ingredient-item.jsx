@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useDrag } from 'react-dnd';
 import PropTypes from 'prop-types';
@@ -6,28 +6,18 @@ import {
 	ingredientPropType,
 	functionPropType,
 } from '../../../utils/prop-types';
-
 import { clsx } from 'clsx';
 import {
 	CurrencyIcon,
 	Counter,
 } from '@ya.praktikum/react-developer-burger-ui-components';
-// import {
-// 	setSingleIngredient,
-// 	clearSingleIngredient,
-// } from '../../../services/single-ingredient/reducer';
-
 import {
 	setBun,
 	addIngredient,
-	clearConstructor,
-	removeIngredient,
-	moveIngredient,
 } from '../../../services/burger-constructor/reducer';
-
 import s from './ingredient-item.module.scss';
 
-export const IngredientItem = ({ ingredient, openModal }) => {
+export const IngredientItem = ({ ingredient, onIngredientClick }) => {
 	const dispatch = useDispatch();
 
 	const dragType = ingredient.type === 'bun' ? 'bun' : 'ingredient';
@@ -56,7 +46,6 @@ export const IngredientItem = ({ ingredient, openModal }) => {
 				} else {
 					dispatch(addIngredient(item.ingredient));
 				}
-				// alert(`You dropped ${item.ingredient.name} into ${dropResult.name}!`);
 			}
 		},
 		collect: (monitor) => ({
@@ -72,13 +61,10 @@ export const IngredientItem = ({ ingredient, openModal }) => {
 			className={clsx(s.ingredients__item)}
 			ref={dragRef}
 			style={{ opacity }}
-			onClick={() => openModal(ingredient)}
-			// onClick={() => {
-			// 	handleAddIngredient(ingredient);
-			// }}
+			onClick={() => onIngredientClick(ingredient._id)}
 			onKeyDown={(e) => {
 				if (e.key === 'Enter' || e.key === ' ') {
-					openModal(ingredient);
+					onIngredientClick(ingredient._id);
 				}
 			}}
 			tabIndex={0}
@@ -104,5 +90,5 @@ export const IngredientItem = ({ ingredient, openModal }) => {
 
 IngredientItem.propTypes = {
 	ingredient: ingredientPropType.isRequired,
-	openModal: functionPropType.isRequired,
+	onIngredientClick: functionPropType.isRequired,
 };

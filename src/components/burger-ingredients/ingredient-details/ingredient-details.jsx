@@ -6,6 +6,10 @@ import s from './ingredient-details.module.scss';
 export const IngredientDetails = (props) => {
 	const { ingredient } = props;
 
+	if (!ingredient) {
+		return <p className='text text_type_main-medium'>Ингредиент не найден</p>;
+	}
+
 	return (
 		<div className={clsx(s.ingredient_details__wrapper)}>
 			<div

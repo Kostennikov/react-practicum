@@ -2,15 +2,30 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { ORDER_ENDPOINT } from '../../config';
 import { request } from '../../utils/api';
 
+const getCookie = (name) => {
+	const matches = document.cookie.match(
+		new RegExp(
+			'(?:^|; )' + name.replace(/([.$?*|{}()[]\\\/+^])/g, '\\$1') + '=([^;]*)'
+		)
+	);
+	return matches ? decodeURIComponent(matches[1]) : undefined;
+};
+
 export const createOrder = createAsyncThunk(
 	'order/createOrder',
 	async (ingredientIds, { rejectWithValue }) => {
 		try {
+			const accessToken = getCookie('accessToken');
+			if (!accessToken) throw new Error('Токен отсутствует');
+
 			const data = await request(ORDER_ENDPOINT, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+				},
 				body: JSON.stringify({ ingredients: ingredientIds }),
 			});
+
 			return data;
 		} catch (error) {
 			return rejectWithValue(error.message);

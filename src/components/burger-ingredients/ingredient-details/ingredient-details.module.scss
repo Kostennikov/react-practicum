@@ -1,4 +1,7 @@
 .ingredient_details {
+	&__title {
+		text-align: center;
+	}
 	&__content {
 		display: flex;
 		flex-direction: column;

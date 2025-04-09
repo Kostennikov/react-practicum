@@ -1,9 +1,10 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from './services/store.js';
 
-import { App } from './components/app/app';
+import { App } from './App.jsx';
 import './styles.css';
 
 const domNode = document.getElementById('root') as HTMLDivElement;
@@ -14,7 +15,9 @@ const store = configureStore();
 root.render(
 	<StrictMode>
 		<Provider store={store}>
-			<App />
+			<BrowserRouter>
+				<App />
+			</BrowserRouter>
 		</Provider>
 	</StrictMode>
 );
