@@ -1,4 +1,4 @@
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { clsx } from 'clsx';
 import {
 	Logo,
@@ -9,24 +9,27 @@ import {
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import s from './app-header.module.scss';
 
-export const AppHeader = () => {
-	// const navigate = useNavigate();
+// Тип для функции renderProp в NavLink
+interface NavLinkRenderProps {
+	isActive: boolean;
+}
 
+export const AppHeader: React.FC = () => {
 	return (
 		<header className={clsx(s.header)}>
 			<div className={clsx(s.container)}>
 				<div className={clsx(s.header__wrapper)}>
 					<nav className={clsx(s.header__nav)}>
-						<NavLink to={'/'}>
-							{({ isActive }) => (
+						<NavLink to='/'>
+							{({ isActive }: NavLinkRenderProps) => (
 								<Button
 									htmlType='button'
 									type='secondary'
 									size='small'
-									className={`${isActive ? s.active : ''}  ${clsx(
+									className={`${isActive ? s.active : ''} ${clsx(
 										s.button__burger
 									)}`}>
-									<BurgerIcon type={`${isActive ? 'primary' : 'secondary'}`} />
+									<BurgerIcon type={isActive ? 'primary' : 'secondary'} />
 									Конструктор
 								</Button>
 							)}
@@ -40,19 +43,17 @@ export const AppHeader = () => {
 							<ListIcon type='secondary' /> Лента заказов
 						</Button>
 					</nav>
-					<NavLink to={'/'}>
+					<NavLink to='/'>
 						<Logo className={clsx(s.logo)} />
 					</NavLink>
-					<NavLink to={'/profile'}>
-						{({ isActive }) => (
+					<NavLink to='/profile'>
+						{({ isActive }: NavLinkRenderProps) => (
 							<Button
 								htmlType='button'
 								type='secondary'
 								size='small'
-								className={`${isActive ? s.active : ''}  ${clsx(
-									s.button__lk
-								)}`}>
-								<ProfileIcon type={`${isActive ? 'primary' : 'secondary'}`} />
+								className={`${isActive ? s.active : ''} ${clsx(s.button__lk)}`}>
+								<ProfileIcon type={isActive ? 'primary' : 'secondary'} />
 								Личный кабинет
 							</Button>
 						)}

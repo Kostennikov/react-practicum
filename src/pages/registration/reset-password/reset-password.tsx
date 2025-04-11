@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,22 +9,30 @@ import {
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { resetPassword } from '../../../services/auth/reducer';
+import type { RootState } from '../../../types/types';
 
-export const ResetPassword = () => {
-	const [password, setPassword] = useState('');
-	const [token, setToken] = useState('');
+export const ResetPassword: React.FC = () => {
+	const [password, setPassword] = useState<string>('');
+	const [token, setToken] = useState<string>('');
+
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
-	const { loading, error } = useSelector((state) => state.auth);
 
-	const inputRef = useRef(null);
+	const { loading, error } = useSelector((state: RootState) => state.auth);
+
+	const inputRef = useRef<HTMLInputElement>(null);
+
 	const onIconClick = () => {
-		setTimeout(() => inputRef.current.focus(), 0);
+		setTimeout(() => {
+			inputRef.current?.focus();
+		}, 0);
 	};
 
-	const handleSubmit = async (e) => {
+	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		dispatch(resetPassword({ password, token })).then((result) => {
+
+		// @ts-ignore
+		dispatch(resetPassword({ password, token })).then((result: any) => {
 			if (result.type === resetPassword.fulfilled.type) {
 				navigate('/login', { replace: true });
 			}
@@ -39,24 +47,24 @@ export const ResetPassword = () => {
 				</h1>
 				<form onSubmit={handleSubmit}>
 					<PasswordInput
-						placeholder={'Введите новый пароль'}
+						placeholder='Введите новый пароль'
 						onChange={(e) => setPassword(e.target.value)}
 						value={password}
-						name={'password'}
+						name='password'
 						extraClass='mb-6'
 						required
 					/>
 					<Input
-						type={'text'}
-						placeholder={'Введите код из письма'}
+						type='text'
+						placeholder='Введите код из письма'
 						onChange={(e) => setToken(e.target.value)}
 						value={token}
-						name={'token'}
+						name='token'
 						error={!!error}
 						ref={inputRef}
 						onIconClick={onIconClick}
-						errorText={error}
-						size={'default'}
+						errorText={error || ''}
+						size='default'
 						extraClass='mb-6'
 						required
 					/>

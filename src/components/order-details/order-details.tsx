@@ -1,11 +1,12 @@
 import { clsx } from 'clsx';
-import s from './order-details.module.scss';
-import PropTypes from 'prop-types';
 import doneImage from '../../assets/images/done.png';
+import s from './order-details.module.scss';
 
-export const OrderDetails = (props) => {
-	const { orderId } = props;
+interface OrderDetailsProps {
+	orderId: number | string;
+}
 
+export const OrderDetails: React.FC<OrderDetailsProps> = ({ orderId }) => {
 	return (
 		<>
 			<section className={clsx(s.order_details)}>
@@ -41,8 +42,4 @@ export const OrderDetails = (props) => {
 			</section>
 		</>
 	);
-};
-
-OrderDetails.propTypes = {
-	orderId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 };

@@ -1,17 +1,28 @@
 import { clsx } from 'clsx';
-import PropTypes from 'prop-types';
-import { ingredientPropType } from '../../../utils/prop-types';
-import s from './ingredients-group.module.scss';
 import { IngredientItem } from '../ingredient-item/ingredient-item';
+import { FilteredIngredients, Ingredient } from '../../../types/types';
+import s from './ingredients-group.module.scss';
 
-export const IngredientsGroup = ({
+interface IngredientsGroupProps {
+	filteredIngredients: FilteredIngredients;
+	onIngredientClick: (id: string) => void;
+	bunRef: React.RefObject<HTMLDivElement>;
+	sauceRef: React.RefObject<HTMLDivElement>;
+	mainRef: React.RefObject<HTMLDivElement>;
+}
+
+export const IngredientsGroup: React.FC<IngredientsGroupProps> = ({
 	filteredIngredients,
 	onIngredientClick,
 	bunRef,
 	sauceRef,
 	mainRef,
 }) => {
-	const refMap = { bun: bunRef, sauce: sauceRef, main: mainRef };
+	const refMap: Record<string, React.RefObject<HTMLDivElement>> = {
+		bun: bunRef,
+		sauce: sauceRef,
+		main: mainRef,
+	};
 
 	return (
 		<div>
@@ -33,7 +44,7 @@ export const IngredientsGroup = ({
 							: 'Начинки'}
 					</h2>
 					<ul className={clsx(s.ingredients__list)}>
-						{ingredients.map((ingredient) => (
+						{ingredients.map((ingredient: Ingredient) => (
 							<li key={ingredient._id}>
 								<IngredientItem
 									ingredient={ingredient}
@@ -46,19 +57,4 @@ export const IngredientsGroup = ({
 			))}
 		</div>
 	);
-};
-
-IngredientsGroup.propTypes = {
-	filteredIngredients: PropTypes.shape({
-		bun: PropTypes.arrayOf(ingredientPropType).isRequired,
-		sauce: PropTypes.arrayOf(ingredientPropType).isRequired,
-		main: PropTypes.arrayOf(ingredientPropType).isRequired,
-	}).isRequired,
-	onIngredientClick: PropTypes.func.isRequired,
-	bunRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) })
-		.isRequired,
-	sauceRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) })
-		.isRequired,
-	mainRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) })
-		.isRequired,
 };

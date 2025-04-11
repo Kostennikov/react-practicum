@@ -1,22 +1,23 @@
-import React, { useEffect } from 'react';
+import React, { FC, useEffect } from 'react';
 import { clsx } from 'clsx';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import s from './home.module.scss';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-
 import { BurgerConstructor } from '../../components/burger-constructor/burger-constructor';
 import { BurgerIngredients } from '../../components/burger-ingredients/burger-ingredients';
+import { RootState, Ingredient } from '../../types/types';
 
-export const Home = () => {
+interface HomeProps {}
+
+export const Home: FC<HomeProps> = () => {
 	const navigate = useNavigate();
-
 	const { ingredients, loading, error } = useSelector(
-		(state) => state.ingredients ?? { ingredients: [] }
+		(state: RootState) => state.ingredients
 	);
 
-	const handleIngredientClick = (id) => {
+	const handleIngredientClick = (id: string) => {
 		navigate(`/ingredients/${id}`, {
 			state: { background: { pathname: '/' } },
 		});

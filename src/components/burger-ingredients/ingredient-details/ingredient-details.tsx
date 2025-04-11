@@ -1,11 +1,15 @@
-import { clsx } from 'clsx';
-// import PropTypes from 'prop-types';
-import { ingredientPropType } from '../../../utils/prop-types';
+import React from 'react';
+import { Ingredient } from '../../../types/types';
 import s from './ingredient-details.module.scss';
+import { clsx } from 'clsx';
 
-export const IngredientDetails = (props) => {
-	const { ingredient } = props;
+interface IngredientDetailsProps {
+	ingredient: Ingredient;
+}
 
+const IngredientDetails: React.FC<IngredientDetailsProps> = ({
+	ingredient,
+}) => {
 	if (!ingredient) {
 		return <p className='text text_type_main-medium'>Ингредиент не найден</p>;
 	}
@@ -69,6 +73,4 @@ export const IngredientDetails = (props) => {
 	);
 };
 
-IngredientDetails.propTypes = {
-	ingredient: ingredientPropType.isRequired,
-};
+export default IngredientDetails;

@@ -1,17 +1,20 @@
-import React from 'react';
+import React, { FC } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { clsx } from 'clsx';
 import s from './ingredient-page.module.scss';
-import { IngredientDetails } from '../../components/burger-ingredients/ingredient-details/ingredient-details';
+import IngredientDetails from '../../components/burger-ingredients/ingredient-details/ingredient-details';
+import { RootState, Ingredient } from '../../types/types';
 
-export const IngredientPage = () => {
-	const { id } = useParams();
+interface IngredientPageProps {}
+
+export const IngredientPage: FC<IngredientPageProps> = () => {
+	const { id } = useParams<{ id: string }>();
 	const { ingredients, loading, error } = useSelector(
-		(state) => state.ingredients
+		(state: RootState) => state.ingredients
 	);
 
-	const ingredient = ingredients.find((item) => item._id === id);
+	const ingredient = ingredients.find((item: Ingredient) => item._id === id);
 
 	if (loading) return <p>Загрузка...</p>;
 	if (error) return <p>Ошибка: {error}</p>;

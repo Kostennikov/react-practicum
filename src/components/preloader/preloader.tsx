@@ -2,7 +2,7 @@ import React from 'react';
 import { clsx } from 'clsx';
 import s from './preloader.module.scss';
 
-export const Preloader = () => {
+export const Preloader: React.FC = () => {
 	return (
 		<div className={clsx(s.preloader)}>
 			<div className={clsx(s.spinner)} />

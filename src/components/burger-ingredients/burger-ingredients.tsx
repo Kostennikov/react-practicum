@@ -1,24 +1,37 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { clsx } from 'clsx';
-import PropTypes from 'prop-types';
 import { Tab } from '@ya.praktikum/react-developer-burger-ui-components';
-import s from './burger-ingredients.module.scss';
+// import { RootState } from '../../services/store';
+import { RootState, Ingredient } from '../../types/types';
 import { IngredientsGroup } from './ingredientsGroup/ingredients-group';
+import s from './burger-ingredients.module.scss';
 
-export const BurgerIngredients = ({ onIngredientClick }) => {
-	const [current, setCurrent] = useState('bun');
+interface BurgerIngredientsProps {
+	onIngredientClick: (id: string) => void;
+}
+
+interface FilteredIngredients {
+	bun: Ingredient[];
+	sauce: Ingredient[];
+	main: Ingredient[];
+}
+
+export const BurgerIngredients: React.FC<BurgerIngredientsProps> = ({
+	onIngredientClick,
+}) => {
+	const [current, setCurrent] = useState<'bun' | 'sauce' | 'main'>('bun');
 
 	const { ingredients } = useSelector(
-		(state) => state.ingredients ?? { ingredients: [] }
+		(state: RootState) => state.ingredients ?? { ingredients: [] }
 	);
 
-	const containerRef = useRef(null);
-	const bunRef = useRef(null);
-	const sauceRef = useRef(null);
-	const mainRef = useRef(null);
+	const containerRef = useRef<HTMLDivElement>(null);
+	const bunRef = useRef<HTMLDivElement>(null);
+	const sauceRef = useRef<HTMLDivElement>(null);
+	const mainRef = useRef<HTMLDivElement>(null);
 
-	const filteredIngredients = useMemo(
+	const filteredIngredients = useMemo<FilteredIngredients>(
 		() => ({
 			bun: ingredients.filter((e) => e.type === 'bun'),
 			sauce: ingredients.filter((e) => e.type === 'sauce'),
@@ -28,9 +41,13 @@ export const BurgerIngredients = ({ onIngredientClick }) => {
 	);
 
 	// Прокрутка по клику на таб
-	const handleTabClick = (value) => {
+	const handleTabClick = (value: 'bun' | 'sauce' | 'main') => {
 		setCurrent(value);
-		const refMap = { bun: bunRef, sauce: sauceRef, main: mainRef };
+		const refMap: Record<string, React.RefObject<HTMLDivElement>> = {
+			bun: bunRef,
+			sauce: sauceRef,
+			main: mainRef,
+		};
 		const targetRef = refMap[value];
 
 		if (targetRef.current && containerRef.current) {
@@ -41,13 +58,17 @@ export const BurgerIngredients = ({ onIngredientClick }) => {
 		}
 	};
 
-	// Автообновление активного таба при прокрутке
+	// Автообновление активного таба при прокрутке (IntersectionObserver)
 	useEffect(() => {
 		const observer = new IntersectionObserver(
 			(entries) => {
 				const visibleSection = entries.find((entry) => entry.isIntersecting);
 				if (visibleSection) {
-					setCurrent(visibleSection.target.dataset.section);
+					const section = (visibleSection.target as HTMLElement).dataset
+						.section as 'bun' | 'sauce' | 'main';
+					if (section) {
+						setCurrent(section);
+					}
 				}
 			},
 			{
@@ -67,6 +88,7 @@ export const BurgerIngredients = ({ onIngredientClick }) => {
 		};
 	}, []);
 
+	// Дополнительная логика для прокрутки (handleScroll)
 	useEffect(() => {
 		const handleScroll = () => {
 			if (!containerRef.current || !mainRef.current) return;
@@ -118,8 +140,4 @@ export const BurgerIngredients = ({ onIngredientClick }) => {
 			</div>
 		</section>
 	);
-};
-
-BurgerIngredients.propTypes = {
-	onIngredientClick: PropTypes.func.isRequired,
 };
