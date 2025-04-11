@@ -1,38 +1,51 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { FC, useEffect, useState, useRef } from 'react';
 import { clsx } from 'clsx';
 import { useDispatch, useSelector } from 'react-redux';
 import s from './profile.module.scss';
 import {
 	Input,
-	PasswordInput,
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { ProfileMenu } from '../../../components/profile-menu/profile-menu';
-import { getUser, updateUser } from '../../../services/auth/reducer';
+import { getUser, updateUser } from '../../../services/auth/reducer.js';
+import { RootState, User } from '../../../types/types';
 
-export const Profile = () => {
+interface ProfileProps {}
+
+type InputRef = React.RefObject<HTMLInputElement>;
+
+interface UpdateUserPayload {
+	name: string;
+	email: string;
+	password?: string;
+}
+
+export const Profile: FC<ProfileProps> = () => {
 	const dispatch = useDispatch();
-	const { user, loading, error } = useSelector((state) => state.auth);
+	const { user, loading, error } = useSelector(
+		(state: RootState) => state.auth
+	);
 
 	// Состояние для редактируемых полей
-	const [name, setName] = useState('');
-	const [email, setEmail] = useState('');
-	const [password, setPassword] = useState('');
-	const [isEditingName, setIsEditingName] = useState(false);
-	const [isEditingEmail, setIsEditingEmail] = useState(false);
-	const [isEditingPassword, setIsEditingPassword] = useState(false);
+	const [name, setName] = useState<string>('');
+	const [email, setEmail] = useState<string>('');
+	const [password, setPassword] = useState<string>('');
+	const [isEditingName, setIsEditingName] = useState<boolean>(false);
+	const [isEditingEmail, setIsEditingEmail] = useState<boolean>(false);
+	const [isEditingPassword, setIsEditingPassword] = useState<boolean>(false);
 
 	// Исходные данные для сброса
-	const [initialName, setInitialName] = useState('');
-	const [initialEmail, setInitialEmail] = useState('');
+	const [initialName, setInitialName] = useState<string>('');
+	const [initialEmail, setInitialEmail] = useState<string>('');
 
-	const nameInputRef = useRef(null);
-	const emailInputRef = useRef(null);
-	const passwordInputRef = useRef(null);
+	const nameInputRef = useRef<HTMLInputElement>(null);
+	const emailInputRef = useRef<HTMLInputElement>(null);
+	const passwordInputRef = useRef<HTMLInputElement>(null);
 
 	// Загружаем данные пользователя при монтировании
 	useEffect(() => {
 		if (!user) {
+			// @ts-ignore
 			dispatch(getUser());
 		}
 	}, [dispatch, user]);
@@ -49,21 +62,22 @@ export const Profile = () => {
 
 	const handleEditName = () => {
 		setIsEditingName(true);
-		setTimeout(() => nameInputRef.current.focus(), 0);
+		setTimeout(() => nameInputRef.current?.focus(), 0);
 	};
 
 	const handleEditEmail = () => {
 		setIsEditingEmail(true);
-		setTimeout(() => emailInputRef.current.focus(), 0);
+		setTimeout(() => emailInputRef.current?.focus(), 0);
 	};
 
 	const handleEditPassword = () => {
 		setIsEditingPassword(true);
-		setTimeout(() => passwordInputRef.current.focus(), 0);
+		setTimeout(() => passwordInputRef.current?.focus(), 0);
 	};
 
-	const handleSubmit = (e) => {
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+		// @ts-ignore
 		dispatch(updateUser({ name, email, password: password || undefined })).then(
 			() => {
 				setIsEditingName(false);
@@ -90,7 +104,6 @@ export const Profile = () => {
 			<div className={clsx(s.container)}>
 				<div className={clsx(s.profile__wrapper)}>
 					<ProfileMenu />
-
 					<div className={clsx(s.profile__content)}>
 						{user ? (
 							<form onSubmit={handleSubmit}>
@@ -98,7 +111,9 @@ export const Profile = () => {
 									type='text'
 									placeholder='Имя'
 									value={name}
-									onChange={(e) => setName(e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										setName(e.target.value)
+									}
 									name='name'
 									disabled={!isEditingName}
 									ref={nameInputRef}
@@ -107,12 +122,13 @@ export const Profile = () => {
 									size='default'
 									extraClass='mb-6'
 								/>
-
 								<Input
 									type='email'
 									placeholder='E-mail'
 									value={email}
-									onChange={(e) => setEmail(e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										setEmail(e.target.value)
+									}
 									name='email'
 									disabled={!isEditingEmail}
 									ref={emailInputRef}
@@ -121,11 +137,13 @@ export const Profile = () => {
 									size='default'
 									extraClass='mb-6'
 								/>
-
 								<Input
+									type='password'
 									placeholder='Пароль'
 									value={password}
-									onChange={(e) => setPassword(e.target.value)}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										setPassword(e.target.value)
+									}
 									name='password'
 									disabled={!isEditingPassword}
 									ref={passwordInputRef}
@@ -133,7 +151,6 @@ export const Profile = () => {
 									icon='EditIcon'
 									extraClass='mb-6'
 								/>
-
 								{(isEditingName || isEditingEmail || isEditingPassword) && (
 									<div className='mb-6'>
 										<Button
@@ -158,7 +175,6 @@ export const Profile = () => {
 						) : (
 							<p>Загрузка данных пользователя...</p>
 						)}
-
 						{error && <p style={{ color: 'red' }}>{error}</p>}
 					</div>
 				</div>

@@ -2,18 +2,14 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { useDrop } from 'react-dnd';
-
+import { useDrop, DropTargetMonitor } from 'react-dnd';
 import {
 	Button,
 	ConstructorElement,
 	CurrencyIcon,
-	DragIcon,
 } from '@ya.praktikum/react-developer-burger-ui-components';
-
 import { Modal } from '../modal/modal';
 import { OrderDetails } from '../order-details/order-details';
-
 import {
 	setBun,
 	addIngredient,
@@ -21,100 +17,110 @@ import {
 	removeIngredient,
 	moveIngredient,
 } from '../../services/burger-constructor/reducer';
-
-import {
-	setSingleIngredient,
-	clearSingleIngredient,
-} from '../../services/single-ingredient/reducer';
 import { createOrder, clearOrder } from '../../services/order/reducer';
 import { setPendingOrder } from '../../services/pending-order/reducer';
-
-import s from './burger-constructor.module.scss';
 import { DraggableIngredient } from './draggable-ingredient/draggable-ingredient';
+import s from './burger-constructor.module.scss';
 
-export const BurgerConstructor = () => {
+// Тип для объекта, который принимает useDrop
+interface DropResult {
+	name: string;
+}
+
+// Тип для объекта, который собирается в useDrop
+interface CollectedProps {
+	isOver: boolean;
+	canDrop: boolean;
+}
+
+// Тип для пропсов OrderDetails (расширяем, чтобы включить undefined)
+interface OrderDetailsProps {
+	orderId?: number | undefined;
+}
+
+export const BurgerConstructor: React.FC = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
-	const [orderModalOpen, setOrderModalOpen] = useState(false);
+	const [orderModalOpen, setOrderModalOpen] = useState<boolean>(false);
 
 	const { bun, burgerIngredients } = useSelector(
-		(state) => state.burgerConstructor ?? { bun: null, burgerIngredients: [] }
+		(state: any) => state.burgerConstructor
 	);
-	const { user } = useSelector((state) => state.auth);
-	const { order, loading, error } = useSelector((state) => state.order);
+	const { user } = useSelector((state: any) => state.auth);
+	const { order, loading, error } = useSelector((state: any) => state.order);
 
-	// зона для верхней булочки
+	// Зона для верхней булочки
 	const [{ isOver: isOverTopBun, canDrop: canDropTopBun }, topBunDropRef] =
-		useDrop({
+		useDrop<{ ingredient: any }, DropResult, CollectedProps>({
 			accept: 'bun',
-			drop: (item) => {
-				// dispatch(setBun(item.ingredient));
+			drop: (item: { ingredient: any }) => {
+				dispatch(setBun(item.ingredient));
 				return { name: 'Top Bun' };
 			},
-			collect: (monitor) => ({
+			collect: (monitor: DropTargetMonitor) => ({
 				isOver: monitor.isOver(),
 				canDrop: monitor.canDrop(),
 			}),
 		});
 
-	// зона для нижней булочки
+	// Зона для нижней булочки
 	const [
 		{ isOver: isOverBottomBun, canDrop: canDropBottomBun },
 		bottomBunDropRef,
-	] = useDrop({
+	] = useDrop<{ ingredient: any }, DropResult, CollectedProps>({
 		accept: 'bun',
-		drop: (item) => {
-			// dispatch(setBun(item.ingredient));
+		drop: (item: { ingredient: any }) => {
+			dispatch(setBun(item.ingredient));
 			return { name: 'Bottom Bun' };
 		},
-		collect: (monitor) => ({
+		collect: (monitor: DropTargetMonitor) => ({
 			isOver: monitor.isOver(),
 			canDrop: monitor.canDrop(),
 		}),
 	});
 
-	// зона для добавления ингредиентов
+	// Зона для добавления ингредиентов
 	const [{ isOver: isOverIngredient, canDrop: canDropIngredient }, dropRef] =
-		useDrop({
+		useDrop<{ ingredient: any }, DropResult, CollectedProps>({
 			accept: 'ingredient',
-			drop: (item) => {
-				// if (ingredient.type !== 'bun') {
-				// 	dispatch(addIngredient(ingredient));
-				// }
-				// dispatch(addIngredient(item.ingredient));
+			drop: (item: { ingredient: any }) => {
+				if (item.ingredient.type !== 'bun') {
+					dispatch(addIngredient(item.ingredient));
+				}
 				return { name: 'Ingredient Area' };
 			},
-			collect: (monitor) => ({
+			collect: (monitor: DropTargetMonitor) => ({
 				isOver: monitor.isOver(),
 				canDrop: monitor.canDrop(),
 			}),
 		});
 
-	// формируем массив
-	const ingredientIds = useMemo(() => {
-		const ids = [];
+	// Формируем массив ID ингредиентов
+	const ingredientIds = useMemo<string[]>(() => {
+		const ids: string[] = [];
 		if (bun) {
-			ids.push(bun._id); // верхняя булка
+			ids.push(bun._id); // Верхняя булка
 		}
-		burgerIngredients.forEach((ingredient) => {
-			ids.push(ingredient._id); // ингредиенты
+		burgerIngredients.forEach((ingredient: any) => {
+			ids.push(ingredient._id); // Ингредиенты
 		});
 		if (bun) {
-			ids.push(bun._id); // нижняя булка
+			ids.push(bun._id); // Нижняя булка
 		}
 		return ids;
 	}, [bun, burgerIngredients]);
 
-	const totalPrice = useMemo(() => {
+	// Вычисляем общую стоимость
+	const totalPrice = useMemo<number>(() => {
 		const bunPrice = bun ? bun.price * 2 : 0;
 		const ingredientsPrice = burgerIngredients.reduce(
-			(sum, item) => sum + item.price,
+			(sum: number, item: any) => sum + item.price,
 			0
 		);
 		return bunPrice + ingredientsPrice;
 	}, [bun, burgerIngredients]);
 
-	const handleOrderSubmit = () => {
+	const handleOrderSubmit = useCallback(() => {
 		// Проверяем авторизацию
 		if (!user) {
 			// Если пользователь не авторизован, сохраняем заказ и перенаправляем на логин
@@ -124,7 +130,7 @@ export const BurgerConstructor = () => {
 					burgerIngredients,
 				})
 			);
-			navigate('/login');
+			navigate('/sign-in');
 			return;
 		}
 
@@ -136,18 +142,12 @@ export const BurgerConstructor = () => {
 
 		const ingredientIds = [
 			bun._id,
-			...burgerIngredients.map((item) => item._id),
+			...burgerIngredients.map((item: any) => item._id),
 			bun._id,
 		];
-
+		// @ts-ignore
 		dispatch(createOrder(ingredientIds));
-	};
-
-	// useMemo(() => {
-	// 	if (order && !loading && !error) {
-	// 		setOrderModalOpen(true);
-	// 	}
-	// }, [order, loading, error]);
+	}, [dispatch, navigate, user, bun, burgerIngredients]);
 
 	useEffect(() => {
 		if (order && !loading && !error) {
@@ -155,12 +155,13 @@ export const BurgerConstructor = () => {
 		}
 	}, [order, loading, error]);
 
-	const handleModalClose = () => {
+	const handleModalClose = useCallback(() => {
 		setOrderModalOpen(false);
+		// @ts-ignore
 		dispatch(clearOrder());
-		dispatch(clearOrder());
+		// @ts-ignore
 		dispatch(clearConstructor());
-	};
+	}, [dispatch]);
 
 	return (
 		<>
@@ -204,13 +205,12 @@ export const BurgerConstructor = () => {
 						})}>
 						{burgerIngredients && burgerIngredients.length > 0 && (
 							<ul className={clsx(s.constructor__list)}>
-								{burgerIngredients.map((item, index) => (
+								{burgerIngredients.map((item: any, index: number) => (
 									<DraggableIngredient
 										key={item.uid}
 										uid={item.uid}
 										index={index}
 										item={item}
-										// moveCard={moveCard}
 									/>
 								))}
 							</ul>
@@ -283,12 +283,6 @@ export const BurgerConstructor = () => {
 					</div>
 
 					{/* Модальное окно заказа */}
-					{/* {orderModalOpen && (
-						<Modal onClose={() => setOrderModalOpen(false)}>
-							<OrderDetails />
-						</Modal>
-					)} */}
-
 					{orderModalOpen && (
 						<Modal onClose={handleModalClose}>
 							<OrderDetails orderId={order?.order?.number} />
@@ -299,5 +293,3 @@ export const BurgerConstructor = () => {
 		</>
 	);
 };
-
-BurgerConstructor.propTypes = {};

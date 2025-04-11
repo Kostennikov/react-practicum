@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { FC } from 'react';
 import { Link } from 'react-router-dom';
-
 import styles from './not-found.module.scss';
 
-export function NotFound404() {
+interface NotFound404Props {}
+
+export const NotFound404: FC<NotFound404Props> = () => {
 	return (
 		<div className={styles.wrapper}>
 			<div className={styles.container}>
@@ -21,4 +22,4 @@ export function NotFound404() {
 			</div>
 		</div>
 	);
-}
+};
