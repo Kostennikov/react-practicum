@@ -18,9 +18,6 @@ import {
 } from '../../../types/types';
 
 interface SignInProps {}
-
-type InputRef = React.RefObject<HTMLInputElement>;
-
 interface LoginUserPayload {
 	email: string;
 	password: string;

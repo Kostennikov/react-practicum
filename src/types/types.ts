@@ -66,6 +66,12 @@ export interface FilteredIngredients {
 	main: Ingredient[];
 }
 
+export interface DraggableIngredientProps {
+	uid: string;
+	index: number;
+	item: Ingredient;
+}
+
 export interface RootState {
 	auth: AuthState;
 	burgerConstructor: BurgerConstructorState;
@@ -73,4 +79,5 @@ export interface RootState {
 	order: OrderState;
 	pendingOrder: PendingOrderState;
 	singleIngredient: SingleIngredientState;
+	draggableIngredien: DraggableIngredientProps;
 }

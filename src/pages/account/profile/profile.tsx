@@ -27,16 +27,16 @@ export const Profile: FC<ProfileProps> = () => {
 	);
 
 	// Состояние для редактируемых полей
-	const [name, setName] = useState<string>('');
-	const [email, setEmail] = useState<string>('');
-	const [password, setPassword] = useState<string>('');
-	const [isEditingName, setIsEditingName] = useState<boolean>(false);
-	const [isEditingEmail, setIsEditingEmail] = useState<boolean>(false);
-	const [isEditingPassword, setIsEditingPassword] = useState<boolean>(false);
+	const [name, setName] = useState('');
+	const [email, setEmail] = useState('');
+	const [password, setPassword] = useState('');
+	const [isEditingName, setIsEditingName] = useState(false);
+	const [isEditingEmail, setIsEditingEmail] = useState(false);
+	const [isEditingPassword, setIsEditingPassword] = useState(false);
 
 	// Исходные данные для сброса
-	const [initialName, setInitialName] = useState<string>('');
-	const [initialEmail, setInitialEmail] = useState<string>('');
+	const [initialName, setInitialName] = useState('');
+	const [initialEmail, setInitialEmail] = useState('');
 
 	const nameInputRef = useRef<HTMLInputElement>(null);
 	const emailInputRef = useRef<HTMLInputElement>(null);

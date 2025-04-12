@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, PropsWithChildren } from 'react';
 import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
 import { CloseIcon } from '@ya.praktikum/react-developer-burger-ui-components';
@@ -7,13 +7,15 @@ import s from './modal.module.scss';
 
 interface ModalProps {
 	onClose: () => void;
-	children: React.ReactNode;
 }
 
 // Типизация modalRoot
 const modalRoot = document.getElementById('react-modals') as HTMLElement;
 
-export const Modal: React.FC<ModalProps> = ({ onClose, children }) => {
+export const Modal: React.FC<PropsWithChildren<ModalProps>> = ({
+	onClose,
+	children,
+}) => {
 	useEffect(() => {
 		const handleEscPress = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {

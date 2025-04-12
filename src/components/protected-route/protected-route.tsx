@@ -18,8 +18,8 @@ export const ProtectedRoute: FC<ProtectedRouteProps> = ({
 	const { user, authChecked } = useSelector((state: RootState) => state.auth);
 	const location = useLocation();
 	const [hasVisitedForgotPassword, setHasVisitedForgotPassword] =
-		useState<boolean>(false);
-	const [showPreloader, setShowPreloader] = useState<boolean>(true);
+		useState(false);
+	const [showPreloader, setShowPreloader] = useState(true);
 
 	// Отслеживаем посещение /forgot-password
 	useEffect(() => {

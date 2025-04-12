@@ -58,18 +58,8 @@ export const IngredientItem: React.FC<IngredientItemProps> = ({
 		unknown,
 		DragCollectedProps
 	>({
-		type: dragType, // string
+		type: dragType,
 		item: { ingredient },
-		// end: (item: DragItem, monitor: DragSourceMonitor) => {
-		// 	const dropResult = monitor.getDropResult();
-		// 	if (item.ingredient && dropResult) {
-		// 		if (item.ingredient.type === 'bun') {
-		// 			dispatch(setBun(item.ingredient));
-		// 		} else {
-		// 			dispatch(addIngredient(item.ingredient));
-		// 		}
-		// 	}
-		// },
 		collect: (monitor: DragSourceMonitor) => ({
 			isDragging: monitor.isDragging(),
 			handlerId: monitor.getHandlerId(),

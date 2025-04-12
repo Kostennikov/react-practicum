@@ -3,7 +3,7 @@ import doneImage from '../../assets/images/done.png';
 import s from './order-details.module.scss';
 
 interface OrderDetailsProps {
-	orderId: number | string;
+	orderId: string | number;
 }
 
 export const OrderDetails: React.FC<OrderDetailsProps> = ({ orderId }) => {

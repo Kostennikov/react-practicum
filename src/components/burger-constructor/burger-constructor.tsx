@@ -1,3 +1,4 @@
+// src/components/burger-constructor/burger-constructor.tsx
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +23,13 @@ import { setPendingOrder } from '../../services/pending-order/reducer';
 import { DraggableIngredient } from './draggable-ingredient/draggable-ingredient';
 import s from './burger-constructor.module.scss';
 
+import {
+	Ingredient,
+	User,
+	Order,
+	BurgerConstructorState,
+} from '../../types/types';
+
 // Тип для объекта, который принимает useDrop
 interface DropResult {
 	name: string;
@@ -33,7 +41,7 @@ interface CollectedProps {
 	canDrop: boolean;
 }
 
-// Тип для пропсов OrderDetails (расширяем, чтобы включить undefined)
+// Тип для пропсов OrderDetails
 interface OrderDetailsProps {
 	orderId?: number | undefined;
 }
@@ -44,16 +52,23 @@ export const BurgerConstructor: React.FC = () => {
 	const [orderModalOpen, setOrderModalOpen] = useState<boolean>(false);
 
 	const { bun, burgerIngredients } = useSelector(
-		(state: any) => state.burgerConstructor
+		(state: { burgerConstructor: BurgerConstructorState }) =>
+			state.burgerConstructor
 	);
-	const { user } = useSelector((state: any) => state.auth);
-	const { order, loading, error } = useSelector((state: any) => state.order);
+	const { user } = useSelector(
+		(state: { auth: { user: User | null } }) => state.auth
+	);
+	const { order, loading, error } = useSelector(
+		(state: {
+			order: { order: Order | null; loading: boolean; error: string | null };
+		}) => state.order
+	);
 
 	// Зона для верхней булочки
 	const [{ isOver: isOverTopBun, canDrop: canDropTopBun }, topBunDropRef] =
-		useDrop<{ ingredient: any }, DropResult, CollectedProps>({
+		useDrop<{ ingredient: Ingredient }, DropResult, CollectedProps>({
 			accept: 'bun',
-			drop: (item: { ingredient: any }) => {
+			drop: (item: { ingredient: Ingredient }) => {
 				dispatch(setBun(item.ingredient));
 				return { name: 'Top Bun' };
 			},
@@ -67,9 +82,9 @@ export const BurgerConstructor: React.FC = () => {
 	const [
 		{ isOver: isOverBottomBun, canDrop: canDropBottomBun },
 		bottomBunDropRef,
-	] = useDrop<{ ingredient: any }, DropResult, CollectedProps>({
+	] = useDrop<{ ingredient: Ingredient }, DropResult, CollectedProps>({
 		accept: 'bun',
-		drop: (item: { ingredient: any }) => {
+		drop: (item: { ingredient: Ingredient }) => {
 			dispatch(setBun(item.ingredient));
 			return { name: 'Bottom Bun' };
 		},
@@ -81,9 +96,9 @@ export const BurgerConstructor: React.FC = () => {
 
 	// Зона для добавления ингредиентов
 	const [{ isOver: isOverIngredient, canDrop: canDropIngredient }, dropRef] =
-		useDrop<{ ingredient: any }, DropResult, CollectedProps>({
+		useDrop<{ ingredient: Ingredient }, DropResult, CollectedProps>({
 			accept: 'ingredient',
-			drop: (item: { ingredient: any }) => {
+			drop: (item: { ingredient: Ingredient }) => {
 				if (item.ingredient.type !== 'bun') {
 					dispatch(addIngredient(item.ingredient));
 				}
@@ -101,7 +116,7 @@ export const BurgerConstructor: React.FC = () => {
 		if (bun) {
 			ids.push(bun._id); // Верхняя булка
 		}
-		burgerIngredients.forEach((ingredient: any) => {
+		burgerIngredients.forEach((ingredient: Ingredient) => {
 			ids.push(ingredient._id); // Ингредиенты
 		});
 		if (bun) {
@@ -114,7 +129,7 @@ export const BurgerConstructor: React.FC = () => {
 	const totalPrice = useMemo<number>(() => {
 		const bunPrice = bun ? bun.price * 2 : 0;
 		const ingredientsPrice = burgerIngredients.reduce(
-			(sum: number, item: any) => sum + item.price,
+			(sum: number, item: Ingredient) => sum + item.price,
 			0
 		);
 		return bunPrice + ingredientsPrice;
@@ -142,7 +157,7 @@ export const BurgerConstructor: React.FC = () => {
 
 		const ingredientIds = [
 			bun._id,
-			...burgerIngredients.map((item: any) => item._id),
+			...burgerIngredients.map((item: Ingredient) => item._id),
 			bun._id,
 		];
 		// @ts-ignore
@@ -205,10 +220,10 @@ export const BurgerConstructor: React.FC = () => {
 						})}>
 						{burgerIngredients && burgerIngredients.length > 0 && (
 							<ul className={clsx(s.constructor__list)}>
-								{burgerIngredients.map((item: any, index: number) => (
+								{burgerIngredients.map((item: Ingredient, index: number) => (
 									<DraggableIngredient
 										key={item.uid}
-										uid={item.uid}
+										uid={item.uid ?? ''}
 										index={index}
 										item={item}
 									/>
@@ -285,7 +300,7 @@ export const BurgerConstructor: React.FC = () => {
 					{/* Модальное окно заказа */}
 					{orderModalOpen && (
 						<Modal onClose={handleModalClose}>
-							<OrderDetails orderId={order?.order?.number} />
+							<OrderDetails orderId={order?.order?.number ?? 0} />
 						</Modal>
 					)}
 				</div>

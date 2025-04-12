@@ -46,9 +46,7 @@ export const ForgotPassword: FC<ForgotPasswordProps> = () => {
 					<Input
 						type='email'
 						placeholder='Укажите e-mail'
-						onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-							setValue(e.target.value)
-						}
+						onChange={(e) => setValue(e.target.value)}
 						value={value}
 						name='email'
 						error={!!error}

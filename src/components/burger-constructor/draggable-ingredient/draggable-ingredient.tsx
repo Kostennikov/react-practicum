@@ -16,17 +16,7 @@ import {
 } from '../../../services/single-ingredient/reducer';
 import s from './draggable-ingredient.module.scss';
 
-// Типизация пропсов компонента
-interface DraggableIngredientProps {
-	uid: string;
-	index: number;
-	item: {
-		name: string;
-		price: number;
-		image: string;
-		[key: string]: any; // Для остальных свойств Ingredient
-	};
-}
+import { DraggableIngredientProps } from '../../../types/types';
 
 export const DraggableIngredient: FC<DraggableIngredientProps> = ({
 	uid,
