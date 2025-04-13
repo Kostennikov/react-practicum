@@ -1,11 +1,8 @@
 import { useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useDrag } from 'react-dnd';
-import PropTypes from 'prop-types';
-import {
-	ingredientPropType,
-	functionPropType,
-} from '../../../utils/prop-types';
+import { useDrag, DragSourceMonitor } from 'react-dnd';
+import type { Identifier } from 'dnd-core';
+
 import { clsx } from 'clsx';
 import {
 	CurrencyIcon,
@@ -15,15 +12,36 @@ import {
 	setBun,
 	addIngredient,
 } from '../../../services/burger-constructor/reducer';
+import { RootState, Ingredient } from '../../../types/types';
 import s from './ingredient-item.module.scss';
 
-export const IngredientItem = ({ ingredient, onIngredientClick }) => {
+interface IngredientItemProps {
+	ingredient: Ingredient;
+	onIngredientClick: (id: string) => void;
+}
+
+// Типизация объекта item для useDrag
+interface DragItem {
+	ingredient: Ingredient;
+}
+
+// Типизация результата collect
+interface DragCollectedProps {
+	isDragging: boolean;
+	handlerId: Identifier | null;
+}
+
+export const IngredientItem: React.FC<IngredientItemProps> = ({
+	ingredient,
+	onIngredientClick,
+}) => {
 	const dispatch = useDispatch();
 
 	const dragType = ingredient.type === 'bun' ? 'bun' : 'ingredient';
 
 	const { bun, burgerIngredients } = useSelector(
-		(state) => state.burgerConstructor ?? { bun: null, burgerIngredients: [] }
+		(state: RootState) =>
+			state.burgerConstructor ?? { bun: null, burgerIngredients: [] }
 	);
 
 	const count = useMemo(() => {
@@ -35,20 +53,14 @@ export const IngredientItem = ({ ingredient, onIngredientClick }) => {
 		}
 	}, [ingredient, bun, burgerIngredients]);
 
-	const [{ isDragging }, dragRef] = useDrag({
+	const [{ isDragging }, dragRef] = useDrag<
+		DragItem,
+		unknown,
+		DragCollectedProps
+	>({
 		type: dragType,
 		item: { ingredient },
-		end: (item, monitor) => {
-			const dropResult = monitor.getDropResult();
-			if (item.ingredient && dropResult) {
-				if (item.ingredient.type === 'bun') {
-					dispatch(setBun(item.ingredient));
-				} else {
-					dispatch(addIngredient(item.ingredient));
-				}
-			}
-		},
-		collect: (monitor) => ({
+		collect: (monitor: DragSourceMonitor) => ({
 			isDragging: monitor.isDragging(),
 			handlerId: monitor.getHandlerId(),
 		}),
@@ -62,7 +74,7 @@ export const IngredientItem = ({ ingredient, onIngredientClick }) => {
 			ref={dragRef}
 			style={{ opacity }}
 			onClick={() => onIngredientClick(ingredient._id)}
-			onKeyDown={(e) => {
+			onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
 				if (e.key === 'Enter' || e.key === ' ') {
 					onIngredientClick(ingredient._id);
 				}
@@ -86,9 +98,4 @@ export const IngredientItem = ({ ingredient, onIngredientClick }) => {
 			</p>
 		</div>
 	);
-};
-
-IngredientItem.propTypes = {
-	ingredient: ingredientPropType.isRequired,
-	onIngredientClick: functionPropType.isRequired,
 };

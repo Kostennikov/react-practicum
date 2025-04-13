@@ -1,7 +1,6 @@
-import { useRef } from 'react';
+import { useRef, FC } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { clsx } from 'clsx';
-
 import {
 	ConstructorElement,
 	DragIcon,
@@ -16,17 +15,21 @@ import {
 	clearSingleIngredient,
 } from '../../../services/single-ingredient/reducer';
 import s from './draggable-ingredient.module.scss';
-import PropTypes from 'prop-types';
-import { burgerIngredientPropType } from '../../../utils/prop-types';
 
-export const DraggableIngredient = ({ uid, index, item }) => {
-	const ref = useRef(null);
+import { DraggableIngredientProps } from '../../../types/types';
+
+export const DraggableIngredient: FC<DraggableIngredientProps> = ({
+	uid,
+	index,
+	item,
+}) => {
+	const ref = useRef<HTMLLIElement>(null);
 	const dispatch = useDispatch();
 
 	// Поддержка drop
 	const [, drop] = useDrop({
-		accept: 'ingredient',
-		hover: (draggedItem, monitor) => {
+		accept: 'constructor-ingredient',
+		hover: (draggedItem: { uid: string; index: number }, monitor) => {
 			if (!ref.current) {
 				return;
 			}
@@ -44,6 +47,7 @@ export const DraggableIngredient = ({ uid, index, item }) => {
 			const hoverMiddleY =
 				(hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
 			const clientOffset = monitor.getClientOffset();
+			if (!clientOffset) return;
 			const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
 			// Определяем индексы для перемещения
@@ -66,7 +70,7 @@ export const DraggableIngredient = ({ uid, index, item }) => {
 
 	// Поддержка drag
 	const [{ isDragging }, drag] = useDrag({
-		type: 'ingredient',
+		type: 'constructor-ingredient',
 		item: () => {
 			dispatch(setSingleIngredient(item));
 			return { uid, index, ingredient: item }; // Передаем uid и index
@@ -96,9 +100,4 @@ export const DraggableIngredient = ({ uid, index, item }) => {
 			/>
 		</li>
 	);
-};
-DraggableIngredient.propTypes = {
-	uid: PropTypes.string.isRequired,
-	index: PropTypes.number.isRequired,
-	item: burgerIngredientPropType.isRequired,
 };

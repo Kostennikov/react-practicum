@@ -20,42 +20,53 @@ import { IngredientPage } from './pages/ingredient-page/ingredient-page';
 import { NotFound404 } from './pages/not-found/not-found';
 import { ProtectedRoute } from './components/protected-route/protected-route';
 import { Modal } from './components/modal/modal';
-import { IngredientDetails } from './components/burger-ingredients/ingredient-details/ingredient-details';
-import { logoutUser, checkAuth } from './services/auth/reducer';
+import IngredientDetails from './components/burger-ingredients/ingredient-details/ingredient-details';
+import { logoutUser, checkAuth } from './services/auth/reducer.js';
 import { fetchIngredients } from './services/ingredients/reducer';
+// import { AppDispatch } from './services/store';
+import { RootState, Ingredient } from './types/types';
+import { Location } from 'react-router-dom';
 
-export const App = () => {
+// Типизация для background (location.state?.background)
+interface BackgroundLocation extends Location {
+	pathname: string;
+}
+
+export const App: React.FC = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const location = useLocation();
-	const { user, authChecked } = useSelector((state) => state.auth);
+	const { user, authChecked } = useSelector((state: RootState) => state.auth);
 	const { ingredients, loading: ingredientsLoading } = useSelector(
-		(state) => state.ingredients
+		(state: RootState) => state.ingredients
 	);
 
 	useEffect(() => {
 		// Проверяем авторизацию
 		if (!authChecked) {
+			// @ts-ignore
 			dispatch(checkAuth());
 		}
 		// Загружаем ингредиенты
 		if (!ingredients.length) {
+			// @ts-ignore
 			dispatch(fetchIngredients());
 		}
 	}, [dispatch, authChecked, ingredients.length]);
 
-	const background = location.state?.background;
+	const background = (location.state as { background?: BackgroundLocation })
+		?.background;
 
 	const handleCloseModal = () => {
 		navigate(background?.pathname || '/', { replace: true });
 	};
 
 	// Компонент для рендеринга модального окна с IngredientDetails
-	const IngredientModal = () => {
-		const { id } = useParams();
-		const ingredient = ingredients.find((item) => item._id === id); // Находим ингредиент в сторе
+	const IngredientModal: React.FC = () => {
+		const { id } = useParams<{ id: string }>();
+		const ingredient = ingredients.find((item: Ingredient) => item._id === id);
 
-		if (ingredientsLoading) return <p>Загрузка ингредиентов...</p>;
+		// if (ingredientsLoading) return <p>Загрузка ингредиентов...</p>;
 		if (!ingredient) return <p>Ингредиент не найден</p>;
 
 		return (
@@ -64,10 +75,6 @@ export const App = () => {
 			</Modal>
 		);
 	};
-
-	// if (!authChecked) {
-	// 	return <p>Проверка авторизации...</p>;
-	// }
 
 	return (
 		<div className='page'>

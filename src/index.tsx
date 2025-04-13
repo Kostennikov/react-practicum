@@ -4,9 +4,10 @@ import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from './services/store.js';
 
-import { App } from './App.jsx';
+import { App } from './App';
 import './styles.css';
 
+// Типизация domNode
 const domNode = document.getElementById('root') as HTMLDivElement;
 const root = createRoot(domNode);
 

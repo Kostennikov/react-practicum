@@ -1,11 +1,12 @@
 import { clsx } from 'clsx';
 import s from './modal-overlay.module.scss';
-import PropTypes from 'prop-types';
 
-export const ModalOverlay = (props) => {
-	const { onClose } = props;
+interface ModalOverlayProps {
+	onClose: () => void;
+}
 
-	const handleKeyDown = (event) => {
+export const ModalOverlay: React.FC<ModalOverlayProps> = ({ onClose }) => {
+	const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
 		if (event.key === 'Enter' || event.key === ' ') {
 			onClose();
 		}
@@ -17,10 +18,7 @@ export const ModalOverlay = (props) => {
 			onClick={onClose}
 			onKeyDown={handleKeyDown}
 			role='button'
-			tabIndex={0}></div>
+			tabIndex={0}
+		/>
 	);
-};
-
-ModalOverlay.propTypes = {
-	onClose: PropTypes.func.isRequired,
 };

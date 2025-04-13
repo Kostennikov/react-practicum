@@ -1,16 +1,21 @@
-// src/components/protected-route/protected-route.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, FC } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import PropTypes from 'prop-types';
 import { Preloader } from '../preloader/preloader';
+import { RootState } from '../../types/types';
 
-export const ProtectedRoute = ({
+interface ProtectedRouteProps {
+	element: React.ReactElement;
+	onlyUnAuth?: boolean;
+	requireForgotPassword?: boolean;
+}
+
+export const ProtectedRoute: FC<ProtectedRouteProps> = ({
 	element,
 	onlyUnAuth = false,
 	requireForgotPassword = false,
 }) => {
-	const { user, authChecked } = useSelector((state) => state.auth);
+	const { user, authChecked } = useSelector((state: RootState) => state.auth);
 	const location = useLocation();
 	const [hasVisitedForgotPassword, setHasVisitedForgotPassword] =
 		useState(false);
@@ -62,15 +67,4 @@ export const ProtectedRoute = ({
 
 	// Если пользователь авторизован, рендерим компонент
 	return element;
-};
-
-ProtectedRoute.propTypes = {
-	element: PropTypes.element.isRequired,
-	onlyUnAuth: PropTypes.bool,
-	requireForgotPassword: PropTypes.bool,
-};
-
-ProtectedRoute.defaultProps = {
-	onlyUnAuth: false,
-	requireForgotPassword: false,
 };

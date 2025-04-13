@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { FC, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,22 +7,29 @@ import {
 	Input,
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
-import { forgotPassword } from '../../../services/auth/reducer';
+import { forgotPassword } from '../../../services/auth/reducer.js';
+import { RootState } from '../../../types/types';
 
-export const ForgotPassword = () => {
-	const [value, setValue] = useState('');
+interface ForgotPasswordProps {}
+
+type InputRef = React.RefObject<HTMLInputElement>;
+
+export const ForgotPassword: FC<ForgotPasswordProps> = () => {
+	const [value, setValue] = useState<string>('');
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
-	const { loading, error } = useSelector((state) => state.auth);
+	const { loading, error } = useSelector((state: RootState) => state.auth);
 
-	const inputRef = useRef(null);
+	const inputRef = useRef<HTMLInputElement>(null);
+
 	const onIconClick = () => {
-		setTimeout(() => inputRef.current.focus(), 0);
+		setTimeout(() => inputRef.current?.focus(), 0);
 	};
 
-	const handleSubmit = async (e) => {
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		dispatch(forgotPassword(value)).then((result) => {
+		// @ts-ignore
+		dispatch(forgotPassword(value)).then((result: any) => {
 			if (result.type === forgotPassword.fulfilled.type) {
 				navigate('/reset-password', { replace: true });
 			}
@@ -37,16 +44,16 @@ export const ForgotPassword = () => {
 				</h1>
 				<form onSubmit={handleSubmit}>
 					<Input
-						type={'email'}
-						placeholder={'Укажите e-mail'}
+						type='email'
+						placeholder='Укажите e-mail'
 						onChange={(e) => setValue(e.target.value)}
 						value={value}
-						name={'email'}
+						name='email'
 						error={!!error}
 						ref={inputRef}
 						onIconClick={onIconClick}
-						errorText={error}
-						size={'default'}
+						errorText={error || undefined}
+						size='default'
 						extraClass='mb-6'
 						required
 					/>
