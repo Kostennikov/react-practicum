@@ -18,11 +18,15 @@ import { Profile } from './pages/account/profile/profile';
 import { Orders } from './pages/account/orders/orders';
 import { IngredientPage } from './pages/ingredient-page/ingredient-page';
 import { NotFound404 } from './pages/not-found/not-found';
+import { Feed } from './pages/feed/feed';
+
 import { ProtectedRoute } from './components/protected-route/protected-route';
 import { Modal } from './components/modal/modal';
 import IngredientDetails from './components/burger-ingredients/ingredient-details/ingredient-details';
+import { FeedDetails } from './components/feed-details/feed-details';
 import { logoutUser, checkAuth } from './services/auth/reducer.js';
 import { fetchIngredients } from './services/ingredients/reducer';
+
 // import { AppDispatch } from './services/store';
 import { RootState, Ingredient } from './types/types';
 import { Location } from 'react-router-dom';
@@ -114,11 +118,15 @@ export const App: React.FC = () => {
 				/>
 				<Route path='/ingredients/:id' element={<IngredientPage />} />
 				<Route path='*' element={<NotFound404 />} />
+
+				<Route path='/feed' element={<Feed />} />
+				<Route path='/feed/:id' element={<FeedDetails />} />
 			</Routes>
 
 			{background && location.pathname.startsWith('/ingredients/') && (
 				<Routes>
 					<Route path='/ingredients/:id' element={<IngredientModal />} />
+					{/* <Route path='/feed/:id' element={<OrderModal />} /> */}
 				</Routes>
 			)}
 		</div>

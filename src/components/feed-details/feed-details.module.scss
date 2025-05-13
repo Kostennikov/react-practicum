@@ -1,0 +1,60 @@
+// components/order-details/order-details.module.scss
+.order_details {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 40px 0;
+}
+
+.modal {
+	padding: 0;
+}
+
+.order_details__number {
+	text-align: center;
+}
+
+.order_details__ingredients {
+	max-height: 312px;
+	overflow-y: auto;
+}
+
+.order_details__ingredient {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+.order_details__image {
+	width: 64px;
+	height: 64px;
+	border-radius: 50%;
+	border: 2px solid #4c4cff;
+	background: #131316;
+	overflow: hidden;
+
+	img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+}
+
+.order_details__price {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.order_details__footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 40px;
+}
+
+.order_details__total {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}

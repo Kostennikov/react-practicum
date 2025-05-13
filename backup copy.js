@@ -1,9 +1,6 @@
-// services/store.js
-import {
-	combineSlices,
-	configureStore as createStore,
-	Middleware,
-} from '@reduxjs/toolkit';
+// services/store.ts
+import { configureStore } from '@reduxjs/toolkit';
+import { combineSlices } from '@reduxjs/toolkit';
 import ingredientsSlice from './ingredients/reducer';
 import orderSlice from './order/reducer';
 import constructorSlice from './burger-constructor/reducer';
@@ -26,21 +23,15 @@ const rootReducer = combineSlices(
 	feedSlice
 );
 
-export const configureStore = (initialState) => {
-	return createStore({
+export const configureStoreFun = (initialState?: any) => {
+	return configureStore({
 		reducer: rootReducer,
 		preloadedState: initialState,
 		middleware: (getDefaultMiddleware) =>
-			getDefaultMiddleware().concat(socketMiddleware(wsUrl)),
+			getDefaultMiddleware({
+				serializableCheck: false, // Отключаем проверку сериализуемости для WebSocket
+			}).concat(socketMiddleware(wsUrl)),
 	});
 };
 
-// export type AppDispatch = ReturnType<typeof configureStore>['dispatch'];
-
-// export const configureStore = (initialState) => {
-// 	return createStore({
-// 		reducer: rootReducer,
-// 		preloadedState: initialState,
-// 		composeWithDevTools,
-// 	});
-// };
+export type AppDispatch = ReturnType<typeof configureStore>['dispatch'];

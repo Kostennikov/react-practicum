@@ -1,4 +1,4 @@
-// services/store.js
+// services/store.ts
 import {
 	combineSlices,
 	configureStore as createStore,
@@ -26,7 +26,7 @@ const rootReducer = combineSlices(
 	feedSlice
 );
 
-export const configureStore = (initialState) => {
+export const configureStore = (initialState?: any) => {
 	return createStore({
 		reducer: rootReducer,
 		preloadedState: initialState,
@@ -35,12 +35,4 @@ export const configureStore = (initialState) => {
 	});
 };
 
-// export type AppDispatch = ReturnType<typeof configureStore>['dispatch'];
-
-// export const configureStore = (initialState) => {
-// 	return createStore({
-// 		reducer: rootReducer,
-// 		preloadedState: initialState,
-// 		composeWithDevTools,
-// 	});
-// };
+export type AppDispatch = ReturnType<typeof configureStore>['dispatch'];
