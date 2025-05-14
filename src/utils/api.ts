@@ -11,6 +11,7 @@ interface ApiResponse<T> {
 	refreshToken?: string;
 	user?: { name: string; email: string };
 	order?: { number: number };
+	orders?: { number: number };
 	name?: string;
 }
 

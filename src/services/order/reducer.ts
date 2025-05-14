@@ -52,26 +52,46 @@ export const fetchOrderByNumber = createAsyncThunk<
 	'order/fetchOrderByNumber',
 	async (number: number, { getState, rejectWithValue }) => {
 		try {
-			const { accessToken } = (getState() as RootState).auth;
-			const headers: HeadersInit = { 'Content-Type': 'application/json' };
-			if (accessToken) {
-				headers.Authorization = `Bearer ${accessToken}`;
-			}
+			const { accessToken } = getState().auth;
+			if (!accessToken)
+				throw new Error('Токен отсутствует, требуется авторизация');
 
-			console.log(`fetchOrderByNumber: Fetching order with number ${number}`); // Отладка
+			const headers: HeadersInit = { 'Content-Type': 'application/json' };
+			headers.Authorization = `Bearer ${accessToken}`;
+
+			// console.log(`fetchOrderByNumber: Fetching order with number ${number}`);
+			// console.log('fetchOrderByNumber: accessToken:', accessToken);
 			const data = await request(`${ORDER_ENDPOINT}/${number}`, {
 				method: 'GET',
 				headers,
 			});
 
-			console.log('fetchOrderByNumber: API response:', data); // Отладка
+			console.log('fetchOrderByNumber: API response:', data);
 
-			if (!data.success || !data.order) {
-				throw new Error(data.message || 'Заказ не найден');
+			if ('orders' in data) {
+				if (!data.success) {
+					throw new Error(data.message || 'Ошибка получения заказа');
+				}
+
+				if (
+					!data.orders ||
+					!Array.isArray(data.orders) ||
+					data.orders.length === 0
+				) {
+					throw new Error('Заказ не найден');
+				}
+
+				const order = data.orders[0];
+				if (!order._id || !order.number) {
+					throw new Error('Некорректные данные заказа');
+				}
+
+				return order as Order;
+			} else {
+				throw new Error('Некорректный формат ответа API');
 			}
-			return data.order as Order;
 		} catch (error: any) {
-			console.error('fetchOrderByNumber: Error:', error.message); // Отладка
+			console.error('fetchOrderByNumber: Error:', error.message);
 			return rejectWithValue(error.message);
 		}
 	}
