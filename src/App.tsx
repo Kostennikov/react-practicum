@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { clsx } from 'clsx';
+import { ORDERS_ALL_URL, ORDERS_URL } from './config';
 import { AppHeader } from './components/app-header/app-header';
 import { Home } from './pages/home/home';
 import { SignIn } from './pages/registration/sign-in/sign-in';
@@ -24,23 +25,29 @@ import { ProtectedRoute } from './components/protected-route/protected-route';
 import { Modal } from './components/modal/modal';
 import IngredientDetails from './components/burger-ingredients/ingredient-details/ingredient-details';
 import { FeedDetails } from './components/feed/feed-details/feed-details';
-// import { OrderDetails } from './components/feed/order-details/order-details'; // Импортируем новый компонент
 import {
 	logoutUser,
 	checkAuth,
 	syncAccessToken,
 } from './services/auth/reducer';
 import { fetchIngredients } from './services/ingredients/reducer';
-import { RootState, Ingredient, Order } from './types/types';
+import { RootState, Ingredient, Order, AppDispatch } from './types/types';
+import { fetchOrderByNumber } from './services/order/reducer';
+import { clearOrder } from './services/order/reducer';
 import { Location } from 'react-router-dom';
-import { fetchOrderByNumber } from './services/order/reducer'; // Импортируем для получения заказа
+import {
+	feedWsConnectionStart,
+	feedWsClose,
+	profileOrdersWsConnectionStart,
+	profileOrdersWsClose,
+} from './services/feed/action';
 
 interface BackgroundLocation extends Location {
 	pathname: string;
 }
 
 export const App: React.FC = () => {
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { user, authChecked, accessToken } = useSelector(
@@ -64,25 +71,54 @@ export const App: React.FC = () => {
 	};
 
 	useEffect(() => {
-		console.log('App: Cookie accessToken:', getCookie('accessToken'));
-		console.log(
-			'App: LocalStorage refreshToken:',
-			localStorage.getItem('refreshToken')
-		);
-		console.log('App: Initializing, syncing access token');
 		dispatch(syncAccessToken());
-		console.log('App: authChecked:', authChecked, 'accessToken:', accessToken);
 		if (!authChecked) {
-			console.log('App: Dispatching checkAuth');
-			// @ts-ignore
 			dispatch(checkAuth());
 		}
 		if (!ingredients.length) {
-			console.log('App: Fetching ingredients');
-			// @ts-ignore
 			dispatch(fetchIngredients());
 		}
 	}, [dispatch, authChecked, ingredients.length]);
+
+	// Логика открытия и закрытия WebSocket-соединений
+	useEffect(() => {
+		if (!authChecked) return;
+
+		const isFeedPage = location.pathname.startsWith('/feed');
+		const isProfileOrdersPage = location.pathname.startsWith('/profile/orders');
+
+		if (isFeedPage && feedOrders.length === 0) {
+			dispatch(feedWsConnectionStart(ORDERS_ALL_URL));
+		}
+
+		if (isProfileOrdersPage && profileOrders.length === 0) {
+			if (!accessToken) {
+				navigate('/login');
+				return;
+			}
+			dispatch(profileOrdersWsConnectionStart(ORDERS_URL));
+		}
+
+		// Закрываем WebSocket-соединение и очищаем state.order при уходе
+		return () => {
+			if (isFeedPage && feedOrders.length > 0) {
+				dispatch(feedWsClose());
+				dispatch(clearOrder());
+			}
+			if (isProfileOrdersPage && profileOrders.length > 0) {
+				dispatch(profileOrdersWsClose());
+				dispatch(clearOrder());
+			}
+		};
+	}, [
+		dispatch,
+		location.pathname,
+		authChecked,
+		accessToken,
+		feedOrders.length,
+		profileOrders.length,
+		navigate,
+	]);
 
 	const background = (location.state as { background?: BackgroundLocation })
 		?.background;
@@ -112,12 +148,14 @@ export const App: React.FC = () => {
 
 		useEffect(() => {
 			if (!order && id) {
-				console.log('App: Order not found in state, fetching by number');
-				// Попытка найти номер заказа по _id
 				const orderFromState = orders.find((o: Order) => o._id === id);
-				if (orderFromState?.number) {
-					// @ts-ignore
+				if (
+					orderFromState?.number &&
+					typeof orderFromState.number === 'number'
+				) {
 					dispatch(fetchOrderByNumber(orderFromState.number));
+				} else {
+					console.log('App: Order number not found or invalid for id:', id);
 				}
 			}
 		}, [id, orders]);

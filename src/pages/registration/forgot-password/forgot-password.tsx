@@ -8,7 +8,7 @@ import {
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { forgotPassword } from '../../../services/auth/reducer';
-import { RootState } from '../../../types/types';
+import { RootState, AppDispatch } from '../../../types/types';
 
 interface ForgotPasswordProps {}
 
@@ -16,7 +16,7 @@ type InputRef = React.RefObject<HTMLInputElement>;
 
 export const ForgotPassword: FC<ForgotPasswordProps> = () => {
 	const [value, setValue] = useState<string>('');
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
 	const { loading, error } = useSelector((state: RootState) => state.auth);
 
@@ -28,7 +28,6 @@ export const ForgotPassword: FC<ForgotPasswordProps> = () => {
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		// @ts-ignore
 		dispatch(forgotPassword(value)).then((result: any) => {
 			if (result.type === forgotPassword.fulfilled.type) {
 				navigate('/reset-password', { replace: true });

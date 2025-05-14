@@ -8,7 +8,7 @@ import {
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { ProfileMenu } from '../../../components/profile-menu/profile-menu';
 import { getUser, updateUser } from '../../../services/auth/reducer';
-import { RootState, User } from '../../../types/types';
+import { RootState, User, AppDispatch } from '../../../types/types';
 
 interface ProfileProps {}
 
@@ -21,7 +21,7 @@ interface UpdateUserPayload {
 }
 
 export const Profile: FC<ProfileProps> = () => {
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const { user, loading, error } = useSelector(
 		(state: RootState) => state.auth
 	);
@@ -45,7 +45,6 @@ export const Profile: FC<ProfileProps> = () => {
 	// Загружаем данные пользователя при монтировании
 	useEffect(() => {
 		if (!user) {
-			// @ts-ignore
 			dispatch(getUser());
 		}
 	}, [dispatch, user]);
@@ -77,7 +76,6 @@ export const Profile: FC<ProfileProps> = () => {
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		// @ts-ignore
 		dispatch(updateUser({ name, email, password: password || undefined })).then(
 			() => {
 				setIsEditingName(false);

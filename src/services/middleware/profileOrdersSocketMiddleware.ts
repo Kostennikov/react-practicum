@@ -1,4 +1,3 @@
-// src/services/middleware/profileOrdersSocketMiddleware.ts
 import {
 	Middleware,
 	MiddlewareAPI,
@@ -35,7 +34,6 @@ export const profileOrdersSocketMiddleware = (): Middleware<{}, RootState> => {
 
 		let accessToken = getState().auth.accessToken;
 		if (!accessToken) {
-			// Запасной вариант: пробуем взять токен из куки
 			const cookieToken = getCookie('accessToken');
 			accessToken = cookieToken ? `Bearer ${cookieToken}` : null;
 		}
@@ -54,14 +52,10 @@ export const profileOrdersSocketMiddleware = (): Middleware<{}, RootState> => {
 			'Bearer ',
 			''
 		)}`;
-		console.log(
-			'ProfileOrders WebSocket: Starting connection to',
-			wsUrlWithToken
-		);
+
 		socket = new WebSocket(wsUrlWithToken);
 
 		socket.onopen = () => {
-			console.log('ProfileOrders WebSocket: Connection opened');
 			dispatch({ type: ProfileOrdersWsActionTypes.WS_CONNECTION_SUCCESS });
 			isConnecting = false;
 			if (reconnectTimeout) {
@@ -81,13 +75,10 @@ export const profileOrdersSocketMiddleware = (): Middleware<{}, RootState> => {
 
 		socket.onmessage = (event) => {
 			const { data } = event;
-			console.log('ProfileOrders WebSocket: Received message', data);
+
 			try {
 				const parsedData = JSON.parse(data);
-				console.log(
-					'ProfileOrders WebSocket: Dispatching WS_GET_MESSAGE',
-					parsedData
-				);
+
 				dispatch({
 					type: ProfileOrdersWsActionTypes.WS_GET_MESSAGE,
 					payload: parsedData,
@@ -105,11 +96,6 @@ export const profileOrdersSocketMiddleware = (): Middleware<{}, RootState> => {
 		};
 
 		socket.onclose = async (event) => {
-			console.log(
-				'ProfileOrders WebSocket: Connection closed',
-				event.code,
-				event.reason
-			);
 			dispatch({
 				type: ProfileOrdersWsActionTypes.WS_CONNECTION_CLOSED,
 				payload: { code: event.code, reason: event.reason },
@@ -120,10 +106,7 @@ export const profileOrdersSocketMiddleware = (): Middleware<{}, RootState> => {
 			if (event.code === 1008 && url) {
 				try {
 					const result = await dispatch(refreshToken()).unwrap();
-					console.log(
-						'ProfileOrders WebSocket: Token refreshed, reconnecting',
-						result
-					);
+
 					connect(dispatch, getState, url);
 				} catch (error: any) {
 					console.error(
@@ -137,7 +120,6 @@ export const profileOrdersSocketMiddleware = (): Middleware<{}, RootState> => {
 				}
 			} else if (!reconnectTimeout && url) {
 				reconnectTimeout = setTimeout(() => {
-					console.log('ProfileOrders WebSocket: Attempting to reconnect');
 					if (url) {
 						connect(dispatch, getState, url);
 					}
@@ -172,13 +154,12 @@ export const profileOrdersSocketMiddleware = (): Middleware<{}, RootState> => {
 				socket.send(JSON.stringify(action.payload));
 			}
 
-			if (
-				action.type === ProfileOrdersWsActionTypes.WS_CONNECTION_CLOSED &&
-				socket
-			) {
+			// Обновляем обработку закрытия
+			if (action.type === 'PROFILE_ORDERS_WS_CONNECTION_CLOSE' && socket) {
 				console.log('ProfileOrders WebSocket: Closing connection');
 				socket.close(1000, 'Normal closure');
 				socket = null;
+				url = null; // Сбрасываем URL, чтобы предотвратить переподключение
 				if (reconnectTimeout) {
 					clearTimeout(reconnectTimeout);
 					reconnectTimeout = null;

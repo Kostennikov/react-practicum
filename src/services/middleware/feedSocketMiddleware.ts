@@ -1,4 +1,3 @@
-// src/services/middleware/feedSocketMiddleware.ts
 import {
 	Middleware,
 	MiddlewareAPI,
@@ -23,11 +22,9 @@ export const feedSocketMiddleware = (): Middleware<{}, RootState> => {
 		isConnecting = true;
 		url = wsUrl;
 
-		console.log('Feed WebSocket: Starting connection to', wsUrl);
 		socket = new WebSocket(wsUrl);
 
 		socket.onopen = () => {
-			console.log('Feed WebSocket: Connection opened');
 			dispatch({ type: FeedWsActionTypes.WS_CONNECTION_SUCCESS });
 			isConnecting = false;
 			if (reconnectTimeout) {
@@ -37,7 +34,6 @@ export const feedSocketMiddleware = (): Middleware<{}, RootState> => {
 		};
 
 		socket.onerror = (error: Event) => {
-			console.error('Feed WebSocket: Error', error);
 			dispatch({
 				type: FeedWsActionTypes.WS_CONNECTION_ERROR,
 				payload: `WebSocket error: ${JSON.stringify(error)}`,
@@ -47,10 +43,8 @@ export const feedSocketMiddleware = (): Middleware<{}, RootState> => {
 
 		socket.onmessage = (event) => {
 			const { data } = event;
-			console.log('Feed WebSocket: Received message', data);
 			try {
 				const parsedData = JSON.parse(data);
-				console.log('Feed WebSocket: Dispatching WS_GET_MESSAGE', parsedData);
 				dispatch({
 					type: FeedWsActionTypes.WS_GET_MESSAGE,
 					payload: parsedData,
@@ -65,11 +59,6 @@ export const feedSocketMiddleware = (): Middleware<{}, RootState> => {
 		};
 
 		socket.onclose = (event) => {
-			console.log(
-				'Feed WebSocket: Connection closed',
-				event.code,
-				event.reason
-			);
 			dispatch({
 				type: FeedWsActionTypes.WS_CONNECTION_CLOSED,
 				payload: { code: event.code, reason: event.reason },
@@ -79,7 +68,6 @@ export const feedSocketMiddleware = (): Middleware<{}, RootState> => {
 
 			if (!reconnectTimeout && url) {
 				reconnectTimeout = setTimeout(() => {
-					console.log('Feed WebSocket: Attempting to reconnect');
 					if (url) {
 						connect(dispatch, getState, url);
 					}
@@ -104,14 +92,14 @@ export const feedSocketMiddleware = (): Middleware<{}, RootState> => {
 			}
 
 			if (action.type === FeedWsActionTypes.WS_SEND_MESSAGE && socket) {
-				console.log('Feed WebSocket: Sending message', action.payload);
 				socket.send(JSON.stringify(action.payload));
 			}
 
-			if (action.type === FeedWsActionTypes.WS_CONNECTION_CLOSED && socket) {
-				console.log('Feed WebSocket: Closing connection');
+			// Обновляем обработку закрытия
+			if (action.type === 'FEED_WS_CONNECTION_CLOSE' && socket) {
 				socket.close(1000, 'Normal closure');
 				socket = null;
+				url = null; // Сбрасываем URL, чтобы предотвратить переподключение
 				if (reconnectTimeout) {
 					clearTimeout(reconnectTimeout);
 					reconnectTimeout = null;

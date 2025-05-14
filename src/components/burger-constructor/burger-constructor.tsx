@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Добавляем useLocation
 import { clsx } from 'clsx';
 import { useDrop, DropTargetMonitor } from 'react-dnd';
 import {
@@ -21,12 +21,13 @@ import { createOrder, clearOrder } from '../../services/order/reducer';
 import { setPendingOrder } from '../../services/pending-order/reducer';
 import { DraggableIngredient } from './draggable-ingredient/draggable-ingredient';
 import s from './burger-constructor.module.scss';
-
 import {
 	Ingredient,
 	User,
 	Order,
 	BurgerConstructorState,
+	AppDispatch,
+	RootState,
 } from '../../types/types';
 
 // Тип для объекта, который принимает useDrop
@@ -46,21 +47,17 @@ interface OrderDetailsProps {
 }
 
 export const BurgerConstructor: React.FC = () => {
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
+	const location = useLocation();
 	const [orderModalOpen, setOrderModalOpen] = useState<boolean>(false);
 
 	const { bun, burgerIngredients } = useSelector(
-		(state: { burgerConstructor: BurgerConstructorState }) =>
-			state.burgerConstructor
+		(state: RootState) => state.burgerConstructor
 	);
-	const { user } = useSelector(
-		(state: { auth: { user: User | null } }) => state.auth
-	);
+	const { user } = useSelector((state: RootState) => state.auth);
 	const { order, loading, error } = useSelector(
-		(state: {
-			order: { order: Order | null; loading: boolean; error: string | null };
-		}) => state.order
+		(state: RootState) => state.order
 	);
 
 	// Зона для верхней булочки
@@ -109,7 +106,7 @@ export const BurgerConstructor: React.FC = () => {
 			}),
 		});
 
-	// Форформируем массив ID ингредиентов
+	// Формируем массив ID ингредиентов
 	const ingredientIds = useMemo<string[]>(() => {
 		const ids: string[] = [];
 		if (bun) {
@@ -144,7 +141,7 @@ export const BurgerConstructor: React.FC = () => {
 					burgerIngredients,
 				})
 			);
-			navigate('/login'); // Исправлено с '/sign-in' на '/login' для соответствия маршрутам
+			navigate('/login');
 			return;
 		}
 
@@ -159,10 +156,17 @@ export const BurgerConstructor: React.FC = () => {
 			...burgerIngredients.map((item: Ingredient) => item._id),
 			bun._id,
 		];
-		// @ts-ignore
 		dispatch(createOrder(ingredientIds));
 	}, [dispatch, navigate, user, bun, burgerIngredients]);
 
+	// Очищаем state.order при монтировании на главной странице
+	useEffect(() => {
+		if (location.pathname === '/') {
+			dispatch(clearOrder());
+		}
+	}, [dispatch, location.pathname]);
+
+	// Открываем модальное окно только после успешного создания заказа
 	useEffect(() => {
 		if (order && !loading && !error) {
 			console.log('BurgerConstructor: Order created, order:', order);
@@ -172,9 +176,7 @@ export const BurgerConstructor: React.FC = () => {
 
 	const handleModalClose = useCallback(() => {
 		setOrderModalOpen(false);
-		// @ts-ignore
 		dispatch(clearOrder());
-		// @ts-ignore
 		dispatch(clearConstructor());
 	}, [dispatch]);
 
@@ -277,24 +279,26 @@ export const BurgerConstructor: React.FC = () => {
 								{error}
 							</p>
 						)}
-						<div className={clsx(s.constructor__price, 'mr-10')}>
-							<p
-								className={clsx(
-									s.constructor__price_num,
-									'text text_type_main-medium mr-2'
-								)}>
-								{totalPrice}
-							</p>
-							<CurrencyIcon type='primary' />
+						<div className={clsx(s.constructor__total, 'mt-10')}>
+							<div className={clsx(s.constructor__price, 'mr-10')}>
+								<p
+									className={clsx(
+										s.constructor__price_num,
+										'text text_type_main-medium mr-2'
+									)}>
+									{totalPrice}
+								</p>
+								<CurrencyIcon type='primary' />
+							</div>
+							<Button
+								htmlType='button'
+								type='primary'
+								size='large'
+								onClick={handleOrderSubmit}
+								disabled={!bun || burgerIngredients.length === 0}>
+								{loading ? 'Оформление...' : 'Оформить заказ'}
+							</Button>
 						</div>
-						<Button
-							htmlType='button'
-							type='primary'
-							size='large'
-							onClick={handleOrderSubmit}
-							disabled={!bun || burgerIngredients.length === 0}>
-							{loading ? 'Оформление...' : 'Оформить заказ'}
-						</Button>
 					</div>
 
 					{/* Модальное окно заказа */}

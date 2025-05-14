@@ -1,4 +1,3 @@
-// src/services/profile-orders/reducer.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
 	ProfileOrdersState,
@@ -21,13 +20,11 @@ const profileOrdersSlice = createSlice({
 	initialState,
 	reducers: {
 		wsConnectionSuccess(state) {
-			console.log('ProfileOrders Reducer: WebSocket connected');
 			state.wsConnected = true;
 			state.wsError = null;
 			state.wsCloseInfo = null;
 		},
 		wsConnectionError(state, action: PayloadAction<string>) {
-			console.log('ProfileOrders Reducer: WebSocket error', action.payload);
 			state.wsConnected = false;
 			state.wsError = action.payload;
 		},
@@ -35,14 +32,12 @@ const profileOrdersSlice = createSlice({
 			state,
 			action: PayloadAction<{ code: number; reason: string }>
 		) {
-			console.log('ProfileOrders Reducer: WebSocket closed', action.payload);
 			state.wsConnected = false;
 			state.wsCloseInfo = action.payload;
 		},
 	},
 	extraReducers: (builder) => {
 		builder.addCase(profileOrdersWsGetMessage, (state, action) => {
-			console.log('ProfileOrders Reducer: Received payload', action);
 			const { orders, success } = action.payload;
 			if (success) {
 				const validOrders = orders.filter(
@@ -64,7 +59,6 @@ const profileOrdersSlice = createSlice({
 					}
 					return order;
 				});
-				console.log('ProfileOrders Reducer: Updating orders', updatedOrders);
 				state.orders = updatedOrders;
 			} else {
 				console.error(

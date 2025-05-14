@@ -9,7 +9,7 @@ import {
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { registerUser } from '../../../services/auth/reducer';
-import { RootState } from '../../../types/types';
+import { RootState, AppDispatch } from '../../../types/types';
 
 interface RegistrationProps {}
 
@@ -25,7 +25,7 @@ export const Registration: FC<RegistrationProps> = () => {
 	const [email, setEmail] = useState<string>('');
 	const [password, setPassword] = useState<string>('');
 	const [name, setName] = useState<string>('');
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
 	const { loading, error } = useSelector((state: RootState) => state.auth);
 
@@ -38,7 +38,6 @@ export const Registration: FC<RegistrationProps> = () => {
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		// @ts-ignore
 		dispatch(registerUser({ email, password, name })).then((result: any) => {
 			if (result.type === registerUser.fulfilled.type) {
 				navigate('/login');
@@ -99,7 +98,6 @@ export const Registration: FC<RegistrationProps> = () => {
 					</Button>
 				</form>
 				{error && <p style={{ color: 'red' }}>{error}</p>}
-				{/* {isAuthenticated && <p>Вы успешно зарегистрированы!</p>} */}
 				<p className='text text_type_main-default text_color_inactive'>
 					Уже зарегистрированы? <Link to='/login'>Войти</Link>
 				</p>

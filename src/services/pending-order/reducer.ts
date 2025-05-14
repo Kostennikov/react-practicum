@@ -1,4 +1,3 @@
-// src/services/pending-order/reducer.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Ingredient, Order } from '../../types/types';
 import { fetchOrderByNumber } from '../order/reducer';

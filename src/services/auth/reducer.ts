@@ -1,4 +1,3 @@
-// src/services/auth/reducer.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import {
 	AUTH_LOGIN_ENDPOINT,
@@ -222,9 +221,7 @@ export const checkAuth = createAsyncThunk(
 	async (_, { dispatch, rejectWithValue }) => {
 		try {
 			const accessToken = getCookie('accessToken');
-			console.log('checkAuth: Access token from cookie:', accessToken);
 			if (!accessToken) {
-				console.log('checkAuth: No access token, attempting to refresh');
 				const refreshResult = await dispatch(refreshToken()).unwrap();
 				if (!refreshResult.accessToken) {
 					console.error('checkAuth: Failed to refresh token');
@@ -238,17 +235,14 @@ export const checkAuth = createAsyncThunk(
 					Authorization: `Bearer ${getCookie('accessToken')}`,
 				},
 			});
-			console.log('checkAuth: User data fetched:', data);
 
 			return data;
 		} catch (error: any) {
-			console.error('checkAuth: Error:', error.message);
 			if (error.message === 'Не удалось обновить токен') {
 				throw error;
 			}
 
 			if (error.message.includes('401')) {
-				console.log('checkAuth: 401 error, attempting to refresh token');
 				await new Promise((resolve) => setTimeout(resolve, 1000));
 				const refreshResult = await dispatch(refreshToken()).unwrap();
 				if (!refreshResult.accessToken) {
@@ -262,7 +256,6 @@ export const checkAuth = createAsyncThunk(
 						Authorization: `Bearer ${getCookie('accessToken')}`,
 					},
 				});
-				console.log('checkAuth: Retry successful, user data:', retryData);
 
 				return retryData;
 			}

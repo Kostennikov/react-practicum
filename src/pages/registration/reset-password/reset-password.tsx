@@ -9,13 +9,13 @@ import {
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { resetPassword } from '../../../services/auth/reducer';
-import type { RootState } from '../../../types/types';
+import { RootState, AppDispatch } from '../../../types/types';
 
 export const ResetPassword: React.FC = () => {
 	const [password, setPassword] = useState<string>('');
 	const [token, setToken] = useState<string>('');
 
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
 
 	const { loading, error } = useSelector((state: RootState) => state.auth);
@@ -31,7 +31,6 @@ export const ResetPassword: React.FC = () => {
 	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
-		// @ts-ignore
 		dispatch(resetPassword({ password, token })).then((result: any) => {
 			if (result.type === resetPassword.fulfilled.type) {
 				navigate('/login', { replace: true });

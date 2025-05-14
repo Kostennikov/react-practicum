@@ -1,5 +1,6 @@
 import { createAction } from '@reduxjs/toolkit';
-
+import { ThunkDispatch } from 'redux-thunk';
+import { AnyAction } from 'redux';
 export interface Ingredient {
 	_id: string;
 	name: string;
@@ -25,14 +26,14 @@ export interface Order {
 	order: {
 		number: number;
 	};
-	_id: string; // Добавлено
+	_id: string;
 	number: number;
 	name: string;
-	status: 'created' | 'pending' | 'done'; // Добавлено
-	ingredients: string[]; // Массив ID ингредиентов
-	createdAt: string; // ISO строка даты
+	status: 'created' | 'pending' | 'done';
+	ingredients: string[];
+	createdAt: string;
 	updatedAt: string;
-	success?: boolean; // Для совместимости с текущим Order
+	success?: boolean;
 }
 
 export interface PendingOrderState {
@@ -173,7 +174,7 @@ export const feedWsSendMessage = createAction<any>(
 	FeedWsActionTypes.WS_SEND_MESSAGE
 );
 
-// Action creators for ProfileOrders
+//ProfileOrders
 export const profileOrdersWsConnectionStart = createAction<string>(
 	ProfileOrdersWsActionTypes.WS_CONNECTION_START
 );
@@ -229,6 +230,17 @@ export interface WsConnectionError {
 export interface WsConnectionClosed {
 	type: WsActionTypes.WS_CONNECTION_CLOSED;
 }
+// export interface feedWsConnectionClose {
+// 	type: WsActionTypes.WS_CONNECTION_CLOSED;
+// }
+
+// export const feedWsConnectionClose = () => ({
+// 	type: 'FEED_WS_CONNECTION_CLOSE',
+// });
+
+// export const profileOrdersWsConnectionClose = () => ({
+// 	type: 'PROFILE_ORDERS_WS_CONNECTION_CLOSE',
+// });
 
 export interface WsGetMessage {
 	type: WsActionTypes.WS_GET_MESSAGE;
@@ -263,3 +275,5 @@ export interface RootState {
 	feed: FeedState;
 	profileOrders: ProfileOrdersState;
 }
+
+export type AppDispatch = ThunkDispatch<RootState, unknown, AnyAction>;

@@ -59,7 +59,7 @@ export const FeedDetails: React.FC<FeedDetailsProps> = ({ order }) => {
 			<p
 				className={clsx(
 					s.order_details__number,
-					'text text_type_digits-large'
+					'text text_type_digits-default mb-4'
 				)}>
 				#{order.number}
 			</p>

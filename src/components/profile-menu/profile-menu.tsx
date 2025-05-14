@@ -3,17 +3,16 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { checkAuth, logoutUser } from '../../services/auth/reducer';
 import s from './profile-menu.module.scss';
-import { RootState } from '../../types/types';
+import { RootState, AppDispatch } from '../../types/types';
 
 export const ProfileMenu = () => {
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
 	const { loading, error } = useSelector((state: RootState) => state.auth);
 
 	const handleLogout = async () => {
 		try {
-			// @ts-ignore
-			await dispatch(logoutUser()).unwrap(); // unwrap для обработки промса из thunk
+			await dispatch(logoutUser()).unwrap();
 			navigate('/login');
 		} catch (err) {
 			console.error('Logout failed:', err);

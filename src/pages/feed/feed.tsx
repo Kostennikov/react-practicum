@@ -1,9 +1,9 @@
-// src/pages/feed/feed.tsx
 import React, { FC, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
 import s from './feed.module.scss';
+import { ORDERS_ALL_URL, ORDERS_URL } from '../../config';
 import { FeedItem } from '../../components/feed/feed-item/feed-item';
 import { FeedList } from '../../components/feed/feed-list/feed-list';
 import {
@@ -32,14 +32,10 @@ export const Feed: FC<FeedProps> = () => {
 	useEffect(() => {
 		if (isProfileOrders) {
 			console.log('ProfileOrders: Initiating WebSocket connection');
-			dispatch(
-				profileOrdersWsConnectionStart('wss://norma.nomoreparties.space/orders')
-			);
+			dispatch(profileOrdersWsConnectionStart(ORDERS_URL));
 		} else {
 			console.log('Feed: Initiating WebSocket connection');
-			dispatch(
-				feedWsConnectionStart('wss://norma.nomoreparties.space/orders/all')
-			);
+			dispatch(feedWsConnectionStart(ORDERS_ALL_URL));
 		}
 		return () => {
 			console.log(
@@ -78,14 +74,6 @@ export const Feed: FC<FeedProps> = () => {
 	// 	);
 	// 	return <p>Подключение...</p>;
 	// }
-
-	console.log(`${isProfileOrders ? 'ProfileOrders' : 'Feed'}: Orders`, orders);
-	console.log(
-		`${isProfileOrders ? 'ProfileOrders' : 'Feed'}: Total`,
-		total,
-		'TotalToday',
-		totalToday
-	);
 
 	const doneOrders = orders
 		.filter((order) => order.status === 'done')

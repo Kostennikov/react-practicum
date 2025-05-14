@@ -15,6 +15,7 @@ import {
 	RootState,
 	BurgerConstructorState,
 	Ingredient,
+	AppDispatch,
 } from '../../../types/types';
 
 interface SignInProps {}
@@ -26,7 +27,7 @@ interface LoginUserPayload {
 export const SignIn: FC<SignInProps> = () => {
 	const [email, setEmail] = useState<string>('');
 	const [password, setPassword] = useState<string>('');
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { loading, error, user } = useSelector(
@@ -55,7 +56,6 @@ export const SignIn: FC<SignInProps> = () => {
 						...burgerIngredients.map((item: Ingredient) => item._id),
 						bun._id,
 					];
-					// @ts-ignore
 					dispatch(createOrder(ingredientIds)).then(() => {
 						dispatch(clearPendingOrder());
 						navigate(from, { replace: true });
@@ -72,7 +72,6 @@ export const SignIn: FC<SignInProps> = () => {
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		// @ts-ignore
 		dispatch(loginUser({ email, password }));
 	};
 

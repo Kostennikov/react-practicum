@@ -1,4 +1,3 @@
-// src/services/feed/action.ts
 import {
 	feedWsConnectionStart,
 	feedWsConnectionSuccess,
@@ -14,6 +13,14 @@ import {
 	profileOrdersWsSendMessage,
 } from '../../types/types';
 
+const feedWsClose = () => ({
+	type: 'FEED_WS_CLOSE',
+});
+
+const profileOrdersWsClose = () => ({
+	type: 'PROFILE_ORDERS_WS_CLOSE',
+});
+
 export {
 	feedWsConnectionStart,
 	feedWsConnectionSuccess,
@@ -21,10 +28,12 @@ export {
 	feedWsConnectionClosed,
 	feedWsGetMessage,
 	feedWsSendMessage,
+	feedWsClose,
 	profileOrdersWsConnectionStart,
 	profileOrdersWsConnectionSuccess,
 	profileOrdersWsConnectionError,
 	profileOrdersWsConnectionClosed,
 	profileOrdersWsGetMessage,
 	profileOrdersWsSendMessage,
+	profileOrdersWsClose,
 };

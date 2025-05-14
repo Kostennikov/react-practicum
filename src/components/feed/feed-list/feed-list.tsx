@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
 import s from './feed-list.module.scss';
+import { ORDERS_ALL_URL, ORDERS_URL } from '../../../config';
 import { FeedItem } from '../feed-item/feed-item';
 import { Preloader } from '../../preloader/preloader';
 import {
@@ -44,54 +45,28 @@ export const FeedList: FC<FeedListProps> = () => {
 
 	useEffect(() => {
 		if (!authChecked || loading) {
-			console.log(
-				'FeedList: Waiting for auth check, authChecked:',
-				authChecked,
-				'loading:',
-				loading
-			);
 			return;
 		}
 
 		if (isProfileOrders && !accessToken && !getCookie('accessToken')) {
-			console.log(
-				'FeedList: No access token in Redux or cookie, skipping WebSocket'
-			);
 			return;
 		}
 
 		const token =
 			accessToken ||
 			(getCookie('accessToken') ? `Bearer ${getCookie('accessToken')}` : null);
-		console.log(
-			'FeedList: Access token:',
-			token,
-			'Cookie accessToken:',
-			getCookie('accessToken')
-		);
 
 		if (authChecked) {
 			setShowPreloader(false);
 		}
 
 		if (isProfileOrders) {
-			console.log('FeedList: Initiating ProfileOrders WebSocket connection');
-			dispatch(
-				profileOrdersWsConnectionStart('wss://norma.nomoreparties.space/orders')
-			);
+			dispatch(profileOrdersWsConnectionStart(ORDERS_URL));
 		} else {
-			console.log('FeedList: Initiating Feed WebSocket connection');
-			dispatch(
-				feedWsConnectionStart('wss://norma.nomoreparties.space/orders/all')
-			);
+			dispatch(feedWsConnectionStart(ORDERS_ALL_URL));
 		}
 
 		return () => {
-			console.log(
-				`${
-					isProfileOrders ? 'ProfileOrders' : 'Feed'
-				}: Closing WebSocket connection`
-			);
 			dispatch(
 				isProfileOrders
 					? profileOrdersWsConnectionClosed({
@@ -107,34 +82,23 @@ export const FeedList: FC<FeedListProps> = () => {
 	}, [dispatch, isProfileOrders, authChecked, accessToken, loading]);
 
 	if (!authChecked || loading) {
-		console.log('FeedList: Rendering loading state');
 		return <p>Проверка авторизации...</p>;
 	}
 
 	const token =
 		accessToken ||
 		(getCookie('accessToken') ? `Bearer ${getCookie('accessToken')}` : null);
-	console.log('FeedList: Rendering, token:', token, 'auth error:', error);
 
 	if (isProfileOrders && !token) {
-		console.log('FeedList: No access token, redirecting to login');
 		navigate('/login');
 		return null;
 	}
 
 	if (wsError) {
-		console.log(
-			`${isProfileOrders ? 'ProfileOrders' : 'Feed'}: WebSocket error`,
-			wsError
-		);
 		return <p>Ошибка WebSocket: {wsError}</p>;
 	}
 
 	if (wsCloseInfo) {
-		console.log(
-			`${isProfileOrders ? 'ProfileOrders' : 'Feed'}: WebSocket closed`,
-			wsCloseInfo
-		);
 		return (
 			<p>
 				Соединение закрыто: Код {wsCloseInfo.code}, Причина:{' '}
@@ -145,17 +109,6 @@ export const FeedList: FC<FeedListProps> = () => {
 
 	const sortedOrders = [...orders].sort(
 		(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-	);
-
-	console.log(
-		`${isProfileOrders ? 'ProfileOrders' : 'Feed'}: Orders`,
-		sortedOrders
-	);
-	console.log(
-		`${isProfileOrders ? 'ProfileOrders' : 'Feed'}: Total`,
-		total,
-		'TotalToday',
-		totalToday
 	);
 
 	if (!authChecked || showPreloader || orders.length === 0) {
