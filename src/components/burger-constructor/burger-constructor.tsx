@@ -1,4 +1,3 @@
-// src/components/burger-constructor/burger-constructor.tsx
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -110,7 +109,7 @@ export const BurgerConstructor: React.FC = () => {
 			}),
 		});
 
-	// Формируем массив ID ингредиентов
+	// Форформируем массив ID ингредиентов
 	const ingredientIds = useMemo<string[]>(() => {
 		const ids: string[] = [];
 		if (bun) {
@@ -145,7 +144,7 @@ export const BurgerConstructor: React.FC = () => {
 					burgerIngredients,
 				})
 			);
-			navigate('/sign-in');
+			navigate('/login'); // Исправлено с '/sign-in' на '/login' для соответствия маршрутам
 			return;
 		}
 
@@ -166,6 +165,7 @@ export const BurgerConstructor: React.FC = () => {
 
 	useEffect(() => {
 		if (order && !loading && !error) {
+			console.log('BurgerConstructor: Order created, order:', order);
 			setOrderModalOpen(true);
 		}
 	}, [order, loading, error]);
@@ -300,7 +300,7 @@ export const BurgerConstructor: React.FC = () => {
 					{/* Модальное окно заказа */}
 					{orderModalOpen && (
 						<Modal onClose={handleModalClose}>
-							<OrderDetails orderId={order?.order?.number ?? 0} />
+							<OrderDetails orderId={order?.number ?? 0} />
 						</Modal>
 					)}
 				</div>

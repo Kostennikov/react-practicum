@@ -20,11 +20,6 @@
         display: flex;
         gap: 60px;
     }
-
-    &__head {
-        display: flex;
-        gap: 36px;
-    }
 }
 
 // pages/feed/feed.module.scss
@@ -45,9 +40,12 @@
 }
 
 .feed__list {
-    width: 600px;
+    // width: 600px;
+    max-width: 844px;
+    width: 100%;
     max-height: 912px;
     overflow-y: auto;
+    padding-right: 16px;
 }
 
 .feed__stats {
@@ -59,7 +57,6 @@
     display: flex;
     gap: 36px;
     margin-bottom: 60px;
-    width: 272px;
 }
 
 .feed__column {

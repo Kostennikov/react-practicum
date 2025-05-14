@@ -8,7 +8,7 @@ import {
 	PasswordInput,
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
-import { registerUser } from '../../../services/auth/reducer.js';
+import { registerUser } from '../../../services/auth/reducer';
 import { RootState } from '../../../types/types';
 
 interface RegistrationProps {}

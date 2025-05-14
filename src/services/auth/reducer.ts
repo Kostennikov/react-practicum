@@ -1,5 +1,5 @@
-// src/services/auth/reducer.js
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+// src/services/auth/reducer.ts
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import {
 	AUTH_LOGIN_ENDPOINT,
 	AUTH_REGISTER_ENDPOINT,
@@ -10,9 +10,14 @@ import {
 	PASSWORD_RESET_CONFIRM_ENDPOINT,
 } from '../../config';
 import { request } from '../../utils/api';
+import { AuthState, RootState } from '../../types/types';
 
 // Утилиты для работы с куками
-const setCookie = (name, value, options = {}) => {
+const setCookie = (
+	name: string,
+	value: string,
+	options: { [key: string]: any } = {}
+) => {
 	options = { path: '/', ...options };
 	if (typeof options.expires === 'number') {
 		const d = new Date();
@@ -30,7 +35,7 @@ const setCookie = (name, value, options = {}) => {
 	document.cookie = updatedCookie;
 };
 
-const getCookie = (name) => {
+const getCookie = (name: string): string | undefined => {
 	const matches = document.cookie.match(
 		new RegExp(
 			`(?:^|; )${name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1')}=([^;]*)`
@@ -39,26 +44,36 @@ const getCookie = (name) => {
 	return matches ? decodeURIComponent(matches[1]) : undefined;
 };
 
-const deleteCookie = (name) => {
+const deleteCookie = (name: string) => {
 	setCookie(name, '', { expires: -1 });
 };
 
 // Регистрация
 export const registerUser = createAsyncThunk(
 	'auth/registerUser',
-	async ({ email, password, name }, { rejectWithValue }) => {
+	async (
+		{
+			email,
+			password,
+			name,
+		}: { email: string; password: string; name: string },
+		{ rejectWithValue }
+	) => {
 		try {
 			const data = await request(AUTH_REGISTER_ENDPOINT, {
 				method: 'POST',
 				body: JSON.stringify({ email, password, name }),
 			});
 
+			if (!data.accessToken || !data.refreshToken) {
+				throw new Error('Токены не получены');
+			}
 			setCookie('accessToken', data.accessToken.split('Bearer ')[1], {
 				expires: 20 * 60,
 			});
 			localStorage.setItem('refreshToken', data.refreshToken);
 			return data;
-		} catch (error) {
+		} catch (error: any) {
 			return rejectWithValue(error.message);
 		}
 	}
@@ -67,19 +82,25 @@ export const registerUser = createAsyncThunk(
 // Авторизация
 export const loginUser = createAsyncThunk(
 	'auth/loginUser',
-	async ({ email, password }, { rejectWithValue }) => {
+	async (
+		{ email, password }: { email: string; password: string },
+		{ rejectWithValue }
+	) => {
 		try {
 			const data = await request(AUTH_LOGIN_ENDPOINT, {
 				method: 'POST',
 				body: JSON.stringify({ email, password }),
 			});
 
+			if (!data.accessToken || !data.refreshToken) {
+				throw new Error('Токены не получены');
+			}
 			setCookie('accessToken', data.accessToken.split('Bearer ')[1], {
 				expires: 20 * 60,
 			});
 			localStorage.setItem('refreshToken', data.refreshToken);
 			return data;
-		} catch (error) {
+		} catch (error: any) {
 			return rejectWithValue(error.message);
 		}
 	}
@@ -101,7 +122,7 @@ export const logoutUser = createAsyncThunk(
 			deleteCookie('accessToken');
 			localStorage.removeItem('refreshToken');
 			return data;
-		} catch (error) {
+		} catch (error: any) {
 			return rejectWithValue(error.message);
 		}
 	}
@@ -123,7 +144,7 @@ export const getUser = createAsyncThunk(
 			});
 
 			return data.user;
-		} catch (error) {
+		} catch (error: any) {
 			return rejectWithValue(error.message);
 		}
 	}
@@ -132,13 +153,23 @@ export const getUser = createAsyncThunk(
 // Обновление данных пользователя
 export const updateUser = createAsyncThunk(
 	'auth/updateUser',
-	async ({ name, email, password }, { rejectWithValue }) => {
+	async (
+		{
+			name,
+			email,
+			password,
+		}: { name: string; email: string; password?: string },
+		{ rejectWithValue }
+	) => {
 		try {
 			const accessToken = getCookie('accessToken');
 			if (!accessToken) throw new Error('Токен отсутствует');
 
-			const body = { name, email };
-			// if (password) body.password = password;
+			const body: { name: string; email: string; password?: string } = {
+				name,
+				email,
+			};
+			if (password) body.password = password;
 
 			const data = await request(AUTH_USER_ENDPOINT, {
 				method: 'PATCH',
@@ -149,7 +180,7 @@ export const updateUser = createAsyncThunk(
 			});
 
 			return data.user;
-		} catch (error) {
+		} catch (error: any) {
 			return rejectWithValue(error.message);
 		}
 	}
@@ -168,12 +199,18 @@ export const refreshToken = createAsyncThunk(
 				body: JSON.stringify({ token: refreshToken }),
 			});
 
+			if (!data.accessToken || !data.refreshToken) {
+				throw new Error('Токены не получены');
+			}
 			setCookie('accessToken', data.accessToken.split('Bearer ')[1], {
 				expires: 20 * 60,
 			});
 			localStorage.setItem('refreshToken', data.refreshToken);
-			return data;
-		} catch (error) {
+			return {
+				accessToken: data.accessToken,
+				refreshToken: data.refreshToken,
+			};
+		} catch (error: any) {
 			return rejectWithValue(error.message);
 		}
 	}
@@ -185,10 +222,14 @@ export const checkAuth = createAsyncThunk(
 	async (_, { dispatch, rejectWithValue }) => {
 		try {
 			const accessToken = getCookie('accessToken');
+			console.log('checkAuth: Access token from cookie:', accessToken);
 			if (!accessToken) {
+				console.log('checkAuth: No access token, attempting to refresh');
 				const refreshResult = await dispatch(refreshToken()).unwrap();
-				if (!refreshResult.success)
+				if (!refreshResult.accessToken) {
+					console.error('checkAuth: Failed to refresh token');
 					throw new Error('Не удалось обновить токен');
+				}
 			}
 
 			const data = await request(AUTH_USER_ENDPOINT, {
@@ -197,18 +238,23 @@ export const checkAuth = createAsyncThunk(
 					Authorization: `Bearer ${getCookie('accessToken')}`,
 				},
 			});
+			console.log('checkAuth: User data fetched:', data);
 
 			return data;
-		} catch (error) {
+		} catch (error: any) {
+			console.error('checkAuth: Error:', error.message);
 			if (error.message === 'Не удалось обновить токен') {
-				throw error; // Пропускаем повторную попытку
+				throw error;
 			}
 
-			// Если ошибка связана с истекшим токеном, пробуем обновить
 			if (error.message.includes('401')) {
+				console.log('checkAuth: 401 error, attempting to refresh token');
+				await new Promise((resolve) => setTimeout(resolve, 1000));
 				const refreshResult = await dispatch(refreshToken()).unwrap();
-				if (!refreshResult.success)
+				if (!refreshResult.accessToken) {
+					console.error('checkAuth: Failed to refresh token after 401');
 					throw new Error('Не удалось обновить токен');
+				}
 
 				const retryData = await request(AUTH_USER_ENDPOINT, {
 					method: 'GET',
@@ -216,6 +262,7 @@ export const checkAuth = createAsyncThunk(
 						Authorization: `Bearer ${getCookie('accessToken')}`,
 					},
 				});
+				console.log('checkAuth: Retry successful, user data:', retryData);
 
 				return retryData;
 			}
@@ -225,10 +272,10 @@ export const checkAuth = createAsyncThunk(
 	}
 );
 
-// Экшен для запроса сброса пароля
+// Запрос сброса пароля
 export const forgotPassword = createAsyncThunk(
 	'auth/forgotPassword',
-	async (email, { rejectWithValue }) => {
+	async (email: string, { rejectWithValue }) => {
 		try {
 			const data = await request(PASSWORD_RESET_ENDPOINT, {
 				method: 'POST',
@@ -236,16 +283,19 @@ export const forgotPassword = createAsyncThunk(
 			});
 
 			return data;
-		} catch (error) {
+		} catch (error: any) {
 			return rejectWithValue(error.message);
 		}
 	}
 );
 
-// Экшен для подтверждения сброса пароля
+// Подтверждение сброса пароля
 export const resetPassword = createAsyncThunk(
 	'auth/resetPassword',
-	async ({ password, token }, { rejectWithValue }) => {
+	async (
+		{ password, token }: { password: string; token: string },
+		{ rejectWithValue }
+	) => {
 		try {
 			const data = await request(PASSWORD_RESET_CONFIRM_ENDPOINT, {
 				method: 'POST',
@@ -253,33 +303,48 @@ export const resetPassword = createAsyncThunk(
 			});
 
 			return data;
-		} catch (error) {
+		} catch (error: any) {
 			return rejectWithValue(error.message);
 		}
 	}
 );
 
+const initialState: AuthState = {
+	user: null,
+	accessToken: null,
+	refreshToken: null,
+	loading: false,
+	error: null,
+	authChecked: false,
+	resetPasswordAllowed: false,
+};
+
 const authSlice = createSlice({
 	name: 'auth',
-	initialState: {
-		user: null,
-		loading: false,
-		error: null,
-		authChecked: false,
-		resetPasswordAllowed: false,
-	},
+	initialState,
 	reducers: {
-		setUser: (state, action) => {
+		setUser: (
+			state,
+			action: PayloadAction<{ email: string; name: string } | null>
+		) => {
 			state.user = action.payload;
 		},
 		clearAuth: (state) => {
 			state.user = null;
+			state.accessToken = null;
+			state.refreshToken = null;
 			state.error = null;
 			state.resetPasswordAllowed = false;
-			// authChecked не сбрасываем, так как проверка уже была выполнена
 		},
 		allowResetPassword: (state) => {
 			state.resetPasswordAllowed = true;
+		},
+		// Новое действие для синхронизации
+		syncAccessToken: (state) => {
+			const accessToken = getCookie('accessToken');
+			if (accessToken) {
+				state.accessToken = `Bearer ${accessToken}`;
+			}
 		},
 	},
 	extraReducers: (builder) => {
@@ -290,12 +355,14 @@ const authSlice = createSlice({
 			})
 			.addCase(registerUser.fulfilled, (state, action) => {
 				state.loading = false;
-				state.user = action.payload.user;
+				state.user = action.payload.user ?? null;
+				state.accessToken = action.payload.accessToken ?? null;
+				state.refreshToken = action.payload.refreshToken ?? null;
 				state.authChecked = true;
 			})
 			.addCase(registerUser.rejected, (state, action) => {
 				state.loading = false;
-				state.error = action.payload;
+				state.error = action.payload as string;
 				state.authChecked = true;
 			})
 			.addCase(loginUser.pending, (state) => {
@@ -304,12 +371,14 @@ const authSlice = createSlice({
 			})
 			.addCase(loginUser.fulfilled, (state, action) => {
 				state.loading = false;
-				state.user = action.payload.user;
+				state.user = action.payload.user ?? null;
+				state.accessToken = action.payload.accessToken ?? null;
+				state.refreshToken = action.payload.refreshToken ?? null;
 				state.authChecked = true;
 			})
 			.addCase(loginUser.rejected, (state, action) => {
 				state.loading = false;
-				state.error = action.payload;
+				state.error = action.payload as string;
 				state.authChecked = true;
 			})
 			.addCase(logoutUser.pending, (state) => {
@@ -319,22 +388,25 @@ const authSlice = createSlice({
 			.addCase(logoutUser.fulfilled, (state) => {
 				state.loading = false;
 				state.user = null;
-				// authChecked не сбрасываем
+				state.accessToken = null;
+				state.refreshToken = null;
 			})
 			.addCase(logoutUser.rejected, (state, action) => {
 				state.loading = false;
-				state.error = action.payload;
+				state.error = action.payload as string;
 			})
 			.addCase(refreshToken.pending, (state) => {
 				state.loading = true;
 				state.error = null;
 			})
-			.addCase(refreshToken.fulfilled, (state) => {
+			.addCase(refreshToken.fulfilled, (state, action) => {
 				state.loading = false;
+				state.accessToken = action.payload.accessToken ?? null;
+				state.refreshToken = action.payload.refreshToken ?? null;
 			})
 			.addCase(refreshToken.rejected, (state, action) => {
 				state.loading = false;
-				state.error = action.payload;
+				state.error = action.payload as string;
 				state.authChecked = true;
 			})
 			.addCase(checkAuth.pending, (state) => {
@@ -343,13 +415,17 @@ const authSlice = createSlice({
 			})
 			.addCase(checkAuth.fulfilled, (state, action) => {
 				state.loading = false;
-				state.user = action.payload.user;
+				state.user = action.payload.user ?? null;
+				state.accessToken = action.payload.accessToken ?? state.accessToken;
+				state.refreshToken = action.payload.refreshToken ?? state.refreshToken;
 				state.authChecked = true;
 			})
 			.addCase(checkAuth.rejected, (state, action) => {
 				state.loading = false;
-				state.error = action.payload;
+				state.error = action.payload as string;
 				state.user = null;
+				state.accessToken = null;
+				state.refreshToken = null;
 				state.authChecked = true;
 			})
 			.addCase(getUser.pending, (state) => {
@@ -358,11 +434,11 @@ const authSlice = createSlice({
 			})
 			.addCase(getUser.fulfilled, (state, action) => {
 				state.loading = false;
-				state.user = action.payload;
+				state.user = action.payload ?? null;
 			})
 			.addCase(getUser.rejected, (state, action) => {
 				state.loading = false;
-				state.error = action.payload;
+				state.error = action.payload as string;
 			})
 			.addCase(updateUser.pending, (state) => {
 				state.loading = true;
@@ -370,40 +446,40 @@ const authSlice = createSlice({
 			})
 			.addCase(updateUser.fulfilled, (state, action) => {
 				state.loading = false;
-				state.user = action.payload;
+				state.user = action.payload ?? null;
 			})
 			.addCase(updateUser.rejected, (state, action) => {
 				state.loading = false;
-				state.error = action.payload;
+				state.error = action.payload as string;
 			})
-			// forgotPassword
 			.addCase(forgotPassword.pending, (state) => {
 				state.loading = true;
 				state.error = null;
 			})
 			.addCase(forgotPassword.fulfilled, (state) => {
 				state.loading = false;
+				state.resetPasswordAllowed = true;
 			})
 			.addCase(forgotPassword.rejected, (state, action) => {
 				state.loading = false;
-				state.error = action.payload;
+				state.error = action.payload as string;
 			})
-			// resetPassword
 			.addCase(resetPassword.pending, (state) => {
 				state.loading = true;
 				state.error = null;
 			})
 			.addCase(resetPassword.fulfilled, (state) => {
 				state.loading = false;
+				state.resetPasswordAllowed = false;
 			})
 			.addCase(resetPassword.rejected, (state, action) => {
 				state.loading = false;
-				state.error = action.payload;
+				state.error = action.payload as string;
 			});
 	},
 });
 
-export const { setUser, clearAuth, allowResetPassword } = authSlice.actions;
-
+export const { setUser, clearAuth, allowResetPassword, syncAccessToken } =
+	authSlice.actions;
 export const { reducer: authReducer } = authSlice;
 export default authSlice;

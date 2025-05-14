@@ -1,22 +1,30 @@
-import { createSlice, nanoid } from '@reduxjs/toolkit';
+import { createSlice, nanoid, PayloadAction } from '@reduxjs/toolkit';
+import { Ingredient } from '../../types/types';
+
+interface ConstructorState {
+	bun: Ingredient | null;
+	burgerIngredients: Ingredient[];
+}
+
+const initialState: ConstructorState = {
+	bun: null,
+	burgerIngredients: [],
+};
 
 const constructorSlice = createSlice({
 	name: 'burgerConstructor',
-	initialState: {
-		bun: null,
-		burgerIngredients: [],
-	},
+	initialState,
 	reducers: {
 		// Установка булочки
-		setBun: (state, action) => {
+		setBun: (state, action: PayloadAction<Ingredient | null>) => {
 			state.bun = action.payload;
 		},
 		// Добавление начинки
 		addIngredient: {
-			reducer: (state, action) => {
+			reducer: (state, action: PayloadAction<Ingredient>) => {
 				state.burgerIngredients.push(action.payload);
 			},
-			prepare: (ingredient) => {
+			prepare: (ingredient: Ingredient) => {
 				return {
 					payload: {
 						...ingredient,
@@ -26,12 +34,15 @@ const constructorSlice = createSlice({
 			},
 		},
 		// Удаление начинки по индексу
-		removeIngredient: (state, action) => {
+		removeIngredient: (state, action: PayloadAction<number>) => {
 			state.burgerIngredients = state.burgerIngredients.filter(
 				(_, index) => index !== action.payload
 			);
 		},
-		moveIngredient: (state, action) => {
+		moveIngredient: (
+			state,
+			action: PayloadAction<{ fromIndex: number; toIndex: number }>
+		) => {
 			const { fromIndex, toIndex } = action.payload;
 			if (
 				fromIndex >= 0 &&

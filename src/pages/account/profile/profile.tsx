@@ -7,7 +7,7 @@ import {
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { ProfileMenu } from '../../../components/profile-menu/profile-menu';
-import { getUser, updateUser } from '../../../services/auth/reducer.js';
+import { getUser, updateUser } from '../../../services/auth/reducer';
 import { RootState, User } from '../../../types/types';
 
 interface ProfileProps {}
@@ -104,7 +104,7 @@ export const Profile: FC<ProfileProps> = () => {
 			<div className={clsx(s.container)}>
 				<div className={clsx(s.profile__wrapper)}>
 					<ProfileMenu />
-					<div className={clsx(s.profile__content)}>
+					<div className={clsx(s.profile__content, 'mt-30')}>
 						{user ? (
 							<form onSubmit={handleSubmit}>
 								<Input

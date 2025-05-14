@@ -19,19 +19,22 @@ import { Orders } from './pages/account/orders/orders';
 import { IngredientPage } from './pages/ingredient-page/ingredient-page';
 import { NotFound404 } from './pages/not-found/not-found';
 import { Feed } from './pages/feed/feed';
-
+import { OrderPage } from './pages/order-page/order-page';
 import { ProtectedRoute } from './components/protected-route/protected-route';
 import { Modal } from './components/modal/modal';
 import IngredientDetails from './components/burger-ingredients/ingredient-details/ingredient-details';
-import { FeedDetails } from './components/feed-details/feed-details';
-import { logoutUser, checkAuth } from './services/auth/reducer.js';
+import { FeedDetails } from './components/feed/feed-details/feed-details';
+// import { OrderDetails } from './components/feed/order-details/order-details'; // Импортируем новый компонент
+import {
+	logoutUser,
+	checkAuth,
+	syncAccessToken,
+} from './services/auth/reducer';
 import { fetchIngredients } from './services/ingredients/reducer';
-
-// import { AppDispatch } from './services/store';
-import { RootState, Ingredient } from './types/types';
+import { RootState, Ingredient, Order } from './types/types';
 import { Location } from 'react-router-dom';
+import { fetchOrderByNumber } from './services/order/reducer'; // Импортируем для получения заказа
 
-// Типизация для background (location.state?.background)
 interface BackgroundLocation extends Location {
 	pathname: string;
 }
@@ -40,19 +43,42 @@ export const App: React.FC = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const location = useLocation();
-	const { user, authChecked } = useSelector((state: RootState) => state.auth);
+	const { user, authChecked, accessToken } = useSelector(
+		(state: RootState) => state.auth
+	);
 	const { ingredients, loading: ingredientsLoading } = useSelector(
 		(state: RootState) => state.ingredients
 	);
+	const { orders: feedOrders } = useSelector((state: RootState) => state.feed);
+	const { orders: profileOrders } = useSelector(
+		(state: RootState) => state.profileOrders
+	);
+
+	const getCookie = (name: string): string | undefined => {
+		const matches = document.cookie.match(
+			new RegExp(
+				`(?:^|; )${name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1')}=([^;]*)`
+			)
+		);
+		return matches ? decodeURIComponent(matches[1]) : undefined;
+	};
 
 	useEffect(() => {
-		// Проверяем авторизацию
+		console.log('App: Cookie accessToken:', getCookie('accessToken'));
+		console.log(
+			'App: LocalStorage refreshToken:',
+			localStorage.getItem('refreshToken')
+		);
+		console.log('App: Initializing, syncing access token');
+		dispatch(syncAccessToken());
+		console.log('App: authChecked:', authChecked, 'accessToken:', accessToken);
 		if (!authChecked) {
+			console.log('App: Dispatching checkAuth');
 			// @ts-ignore
 			dispatch(checkAuth());
 		}
-		// Загружаем ингредиенты
 		if (!ingredients.length) {
+			console.log('App: Fetching ingredients');
 			// @ts-ignore
 			dispatch(fetchIngredients());
 		}
@@ -65,12 +91,10 @@ export const App: React.FC = () => {
 		navigate(background?.pathname || '/', { replace: true });
 	};
 
-	// Компонент для рендеринга модального окна с IngredientDetails
 	const IngredientModal: React.FC = () => {
 		const { id } = useParams<{ id: string }>();
 		const ingredient = ingredients.find((item: Ingredient) => item._id === id);
 
-		// if (ingredientsLoading) return <p>Загрузка ингредиентов...</p>;
 		if (!ingredient) return <p>Ингредиент не найден</p>;
 
 		return (
@@ -80,12 +104,47 @@ export const App: React.FC = () => {
 		);
 	};
 
+	const OrderModal: React.FC = () => {
+		const { id } = useParams<{ id: string }>();
+		const isProfileOrders = location.pathname.startsWith('/profile/orders');
+		const orders = isProfileOrders ? profileOrders : feedOrders;
+		const order = orders.find((o: Order) => o._id === id);
+
+		useEffect(() => {
+			if (!order && id) {
+				console.log('App: Order not found in state, fetching by number');
+				// Попытка найти номер заказа по _id
+				const orderFromState = orders.find((o: Order) => o._id === id);
+				if (orderFromState?.number) {
+					// @ts-ignore
+					dispatch(fetchOrderByNumber(orderFromState.number));
+				}
+			}
+		}, [id, orders]);
+
+		if (!order) return <p>Заказ не найден</p>;
+
+		return (
+			<Modal onClose={handleCloseModal}>
+				<FeedDetails order={order} />
+			</Modal>
+		);
+	};
+
+	if (!authChecked) {
+		console.log('App: Rendering loading state, auth not checked');
+		return <p>Загрузка...</p>;
+	}
+
 	return (
 		<div className='page'>
 			<AppHeader />
 			<Routes location={background || location}>
 				<Route path='/' element={<Home />} />
-				<Route path='/profile/orders' element={<Orders />} />
+				<Route
+					path='/profile/orders'
+					element={<ProtectedRoute element={<Orders />} />}
+				/>
 				<Route
 					path='/login'
 					element={<ProtectedRoute element={<SignIn />} onlyUnAuth={true} />}
@@ -117,18 +176,26 @@ export const App: React.FC = () => {
 					element={<ProtectedRoute element={<Profile />} />}
 				/>
 				<Route path='/ingredients/:id' element={<IngredientPage />} />
-				<Route path='*' element={<NotFound404 />} />
-
 				<Route path='/feed' element={<Feed />} />
-				<Route path='/feed/:id' element={<FeedDetails />} />
+				<Route path='/feed/:id' element={<OrderPage />} />
+				<Route path='/profile/orders/:id' element={<OrderPage />} />
+				<Route path='*' element={<NotFound404 />} />
 			</Routes>
 
 			{background && location.pathname.startsWith('/ingredients/') && (
 				<Routes>
 					<Route path='/ingredients/:id' element={<IngredientModal />} />
-					{/* <Route path='/feed/:id' element={<OrderModal />} /> */}
 				</Routes>
 			)}
+
+			{background &&
+				(location.pathname.startsWith('/feed/') ||
+					location.pathname.startsWith('/profile/orders/')) && (
+					<Routes>
+						<Route path='/feed/:id' element={<OrderModal />} />
+						<Route path='/profile/orders/:id' element={<OrderModal />} />
+					</Routes>
+				)}
 		</div>
 	);
 };

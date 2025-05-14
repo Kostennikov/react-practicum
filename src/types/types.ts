@@ -1,4 +1,5 @@
 import { createAction } from '@reduxjs/toolkit';
+
 export interface Ingredient {
 	_id: string;
 	name: string;
@@ -8,7 +9,7 @@ export interface Ingredient {
 	carbohydrates: number;
 	calories: number;
 	price: number;
-	image: string;
+	image?: string;
 	image_mobile?: string;
 	image_large?: string;
 	__v?: number;
@@ -34,19 +35,22 @@ export interface Order {
 	success?: boolean; // Для совместимости с текущим Order
 }
 
+export interface PendingOrderState {
+	pendingOrder: {
+		bun: Ingredient | null;
+		burgerIngredients: Ingredient[];
+	} | null;
+	fetchedOrder: Order | null;
+	loading: boolean;
+	error: string | null;
+}
+
 export interface BurgerConstructorState {
 	bun: Ingredient | null;
 	burgerIngredients: Ingredient[];
 }
 
 export interface AuthState {
-	// user: User | null;
-	// loading: boolean;
-	// error: string | null;
-	// authChecked: boolean;
-	// resetPasswordAllowed: boolean;
-	// accessToken?: string;
-
 	user: {
 		email: string;
 		name: string;
@@ -66,14 +70,24 @@ export interface IngredientsState {
 	error: string | null;
 }
 
+// Тип для ответа createOrder (где ожидается data.order)
+export interface CreateOrderResponse {
+	success: boolean;
+	order: Order;
+	message?: string;
+}
+
+// Новый тип для ответа fetchOrderByNumber (где ожидается data.orders)
+export interface FetchOrderByNumberResponse {
+	success: boolean;
+	orders: Order[];
+	message?: string;
+}
+
 export interface OrderState {
 	order: Order | null;
 	loading: boolean;
 	error: string | null;
-}
-
-export interface PendingOrderState {
-	pendingOrder: BurgerConstructorState | null;
 }
 
 export interface SingleIngredientState {
@@ -91,6 +105,7 @@ export interface DraggableIngredientProps {
 	index: number;
 	item: Ingredient;
 }
+
 export interface FeedState {
 	orders: Order[];
 	total: number;
@@ -127,6 +142,11 @@ export enum ProfileOrdersWsActionTypes {
 	WS_CONNECTION_CLOSED = 'PROFILE_ORDERS_WS_CONNECTION_CLOSED',
 	WS_GET_MESSAGE = 'PROFILE_ORDERS_WS_GET_MESSAGE',
 	WS_SEND_MESSAGE = 'PROFILE_ORDERS_WS_SEND_MESSAGE',
+}
+
+export interface ProfileOrdersWsAction {
+	type: ProfileOrdersWsActionTypes;
+	payload?: any;
 }
 
 // Action creators for Feed
@@ -176,62 +196,62 @@ export const profileOrdersWsSendMessage = createAction<any>(
 );
 
 // Типы для Feed и WebSocket
-// export enum WsActionTypes {
-// 	WS_CONNECTION_START = 'WS_CONNECTION_START',
-// 	WS_CONNECTION_SUCCESS = 'WS_CONNECTION_SUCCESS',
-// 	WS_CONNECTION_ERROR = 'WS_CONNECTION_ERROR',
-// 	WS_CONNECTION_CLOSED = 'WS_CONNECTION_CLOSED',
-// 	WS_GET_MESSAGE = 'WS_GET_MESSAGE',
-// 	WS_SEND_MESSAGE = 'WS_SEND_MESSAGE',
-// }
+export enum WsActionTypes {
+	WS_CONNECTION_START = 'WS_CONNECTION_START',
+	WS_CONNECTION_SUCCESS = 'WS_CONNECTION_SUCCESS',
+	WS_CONNECTION_ERROR = 'WS_CONNECTION_ERROR',
+	WS_CONNECTION_CLOSED = 'WS_CONNECTION_CLOSED',
+	WS_GET_MESSAGE = 'WS_GET_MESSAGE',
+	WS_SEND_MESSAGE = 'WS_SEND_MESSAGE',
+}
 
-// export const wsGetMessageAction = createAction<{
-// 	orders: Order[];
-// 	total: number;
-// 	totalToday: number;
-// 	success: boolean;
-// }>(WsActionTypes.WS_GET_MESSAGE);
+export const wsGetMessageAction = createAction<{
+	orders: Order[];
+	total: number;
+	totalToday: number;
+	success: boolean;
+}>(WsActionTypes.WS_GET_MESSAGE);
 
-// export interface WsConnectionStart {
-// 	type: WsActionTypes.WS_CONNECTION_START;
-// 	payload: string;
-// }
+export interface WsConnectionStart {
+	type: WsActionTypes.WS_CONNECTION_START;
+	payload: string;
+}
 
-// export interface WsConnectionSuccess {
-// 	type: WsActionTypes.WS_CONNECTION_SUCCESS;
-// }
+export interface WsConnectionSuccess {
+	type: WsActionTypes.WS_CONNECTION_SUCCESS;
+}
 
-// export interface WsConnectionError {
-// 	type: WsActionTypes.WS_CONNECTION_ERROR;
-// 	payload: string;
-// }
+export interface WsConnectionError {
+	type: WsActionTypes.WS_CONNECTION_ERROR;
+	payload: string;
+}
 
-// export interface WsConnectionClosed {
-// 	type: WsActionTypes.WS_CONNECTION_CLOSED;
-// }
+export interface WsConnectionClosed {
+	type: WsActionTypes.WS_CONNECTION_CLOSED;
+}
 
-// export interface WsGetMessage {
-// 	type: WsActionTypes.WS_GET_MESSAGE;
-// 	payload: {
-// 		orders: Order[];
-// 		total: number;
-// 		totalToday: number;
-// 		success: boolean;
-// 	};
-// }
+export interface WsGetMessage {
+	type: WsActionTypes.WS_GET_MESSAGE;
+	payload: {
+		orders: Order[];
+		total: number;
+		totalToday: number;
+		success: boolean;
+	};
+}
 
-// export interface WsSendMessage {
-// 	type: WsActionTypes.WS_SEND_MESSAGE;
-// 	payload: any;
-// }
+export interface WsSendMessage {
+	type: WsActionTypes.WS_SEND_MESSAGE;
+	payload: any;
+}
 
-// export type WsActions =
-// 	| WsConnectionStart
-// 	| WsConnectionSuccess
-// 	| WsConnectionError
-// 	| WsConnectionClosed
-// 	| WsGetMessage
-// 	| WsSendMessage;
+export type WsActions =
+	| WsConnectionStart
+	| WsConnectionSuccess
+	| WsConnectionError
+	| WsConnectionClosed
+	| WsGetMessage
+	| WsSendMessage;
 
 export interface RootState {
 	auth: AuthState;
@@ -240,9 +260,6 @@ export interface RootState {
 	order: OrderState;
 	pendingOrder: PendingOrderState;
 	singleIngredient: SingleIngredientState;
-	// Если это список перетаскиваемых элементов, нужно указать массив
-	draggableIngredien: DraggableIngredientProps; // Изменено на массив
-	// orders: OrdersState;
 	feed: FeedState;
 	profileOrders: ProfileOrdersState;
 }

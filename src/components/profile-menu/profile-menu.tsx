@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { checkAuth, logoutUser } from '../../services/auth/reducer.js';
+import { checkAuth, logoutUser } from '../../services/auth/reducer';
 import s from './profile-menu.module.scss';
 import { RootState } from '../../types/types';
 
@@ -21,7 +21,7 @@ export const ProfileMenu = () => {
 	};
 
 	return (
-		<div className={clsx(s.profile_menu)}>
+		<div className={clsx(s.profile_menu, 'mt-30')}>
 			<nav className={clsx(s.profile_menu__nav)}>
 				<NavLink to='/profile' end>
 					{({ isActive }) => (

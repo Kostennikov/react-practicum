@@ -7,7 +7,7 @@ import {
 	Input,
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
-import { forgotPassword } from '../../../services/auth/reducer.js';
+import { forgotPassword } from '../../../services/auth/reducer';
 import { RootState } from '../../../types/types';
 
 interface ForgotPasswordProps {}

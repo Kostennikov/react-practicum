@@ -1,11 +1,14 @@
 // pages/feed/feed-item/feed-item.tsx
 import React, { FC } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
+import {
+	CurrencyIcon,
+	FormattedDate,
+} from '@ya.praktikum/react-developer-burger-ui-components';
 import s from './feed-item.module.scss';
 import { Order, Ingredient } from '../../../types/types';
-// import { formatDistanceToNow } from 'date-fns';
-// import ru from 'date-fns/locale/ru';
+import {} from '@ya.praktikum/react-developer-burger-ui-components';
 
 interface FeedItemProps {
 	order: Order;
@@ -32,16 +35,43 @@ export const FeedItem: FC<FeedItemProps> = ({
 	// 	locale: ru,
 	// 	addSuffix: true,
 	// });
+	const statusText =
+		order.status === 'created'
+			? 'Создан'
+			: order.status === 'pending'
+			? 'Готовится'
+			: order.status === 'done'
+			? 'Выполнен'
+			: order.status;
+
+	const location = useLocation();
+	const isProfileOrders = location.pathname.startsWith('/profile/orders');
 
 	return (
 		<div className={clsx(s.feed_item)} onClick={onClick}>
-			<div className={clsx(s.feed_item__header)}>
+			<div className={clsx(s.feed_item__header, 'mb-6')}>
 				<p className='text text_type_digits-default'>#{order.number}</p>
-				{/* <p className='text text_type_main-default text_color_inactive'>
-					{timeAgo}
-				</p> */}
+
+				<FormattedDate
+					date={new Date(order.createdAt)}
+					className='text text_type_main-default text_color_inactive'
+				/>
 			</div>
-			<h3 className='text text_type_main-medium'>{order.name}</h3>
+			<h3 className='text text_type_main-medium mb-6'>{order.name}</h3>
+
+			{isProfileOrders && (
+				<p
+					className={clsx(
+						s.order_details__status,
+						'text text_type_main-default mt-2 mb-6',
+						{
+							['text_color_success']: order.status === 'done',
+						}
+					)}>
+					{statusText}
+				</p>
+			)}
+
 			<div className={clsx(s.feed_item__content)}>
 				<div className={clsx(s.feed_item__ingredients)}>
 					{orderIngredients.slice(0, 6).map((ing, index) => (

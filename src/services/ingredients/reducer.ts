@@ -1,6 +1,8 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+// src/services/ingredients/reducer.ts
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { INGREDIENTS_ENDPOINT } from '../../config';
 import { request } from '../../utils/api';
+import { IngredientsState, Ingredient } from '../../types/types';
 
 export const fetchIngredients = createAsyncThunk(
 	'ingredients/fetchIngredients',
@@ -11,19 +13,22 @@ export const fetchIngredients = createAsyncThunk(
 				throw new Error('Некорректный формат ответа сервера');
 			}
 			return data.data;
-		} catch (error) {
+		} catch (error: any) {
 			return rejectWithValue(error.message);
 		}
 	}
 );
 
+const initialState: IngredientsState = {
+	ingredients: [],
+	ingredientsMap: new Map<string, Ingredient>(),
+	loading: false,
+	error: null,
+};
+
 const ingredientsSlice = createSlice({
 	name: 'ingredients',
-	initialState: {
-		ingredients: [],
-		loading: false,
-		error: null,
-	},
+	initialState,
 	reducers: {},
 	extraReducers: (builder) => {
 		builder
@@ -31,18 +36,24 @@ const ingredientsSlice = createSlice({
 				state.loading = true;
 				state.error = null;
 				state.ingredients = [];
+				state.ingredientsMap = new Map<string, Ingredient>();
 			})
-			.addCase(fetchIngredients.fulfilled, (state, action) => {
-				state.loading = false;
-				state.ingredients = action.payload.length ? action.payload : [];
-			})
+			.addCase(
+				fetchIngredients.fulfilled,
+				(state, action: PayloadAction<Ingredient[]>) => {
+					state.loading = false;
+					state.ingredients = action.payload.length ? action.payload : [];
+					state.ingredientsMap = new Map(
+						action.payload.map((item) => [item._id, item])
+					);
+				}
+			)
 			.addCase(fetchIngredients.rejected, (state, action) => {
 				console.error('Ошибка загрузки ингредиентов:', action.payload);
 				state.loading = false;
-				state.error = action.payload || 'Неизвестная ошибка';
+				state.error = action.payload as string;
 				state.ingredients = [];
-
-				// return { ...initialState, error: action.payload };
+				state.ingredientsMap = new Map<string, Ingredient>();
 			});
 	},
 });
