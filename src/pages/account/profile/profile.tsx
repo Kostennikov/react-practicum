@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useState, useRef } from 'react';
 import { clsx } from 'clsx';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import s from './profile.module.scss';
 import {
 	Input,
@@ -21,8 +21,8 @@ interface UpdateUserPayload {
 }
 
 export const Profile: FC<ProfileProps> = () => {
-	const dispatch = useDispatch<AppDispatch>();
-	const { user, loading, error } = useSelector(
+	const dispatch = useAppDispatch();
+	const { user, loading, error } = useAppSelector(
 		(state: RootState) => state.auth
 	);
 

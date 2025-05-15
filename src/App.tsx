@@ -6,7 +6,7 @@ import {
 	useLocation,
 	useParams,
 } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from './hooks/redux';
 import { clsx } from 'clsx';
 import { ORDERS_ALL_URL, ORDERS_URL } from './config';
 import { AppHeader } from './components/app-header/app-header';
@@ -32,43 +32,31 @@ import {
 } from './services/auth/reducer';
 import { fetchIngredients } from './services/ingredients/reducer';
 import { RootState, Ingredient, Order, AppDispatch } from './types/types';
-import { fetchOrderByNumber } from './services/order/reducer';
-import { clearOrder } from './services/order/reducer';
-import { Location } from 'react-router-dom';
+import { fetchOrderByNumber, clearOrder } from './services/order/reducer';
 import {
-	feedWsConnectionStart,
-	feedWsClose,
-	profileOrdersWsConnectionStart,
-	profileOrdersWsClose,
-} from './services/feed/action';
+	wsConnectionStart,
+	wsConnectionClose,
+} from './services/websocket/actions';
 
 interface BackgroundLocation extends Location {
 	pathname: string;
 }
 
 export const App: React.FC = () => {
-	const dispatch = useDispatch<AppDispatch>();
+	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const location = useLocation();
-	const { user, authChecked, accessToken } = useSelector(
+	const { user, authChecked, accessToken } = useAppSelector(
 		(state: RootState) => state.auth
 	);
-	const { ingredients, loading: ingredientsLoading } = useSelector(
+	const { ingredients, loading: ingredientsLoading } = useAppSelector(
 		(state: RootState) => state.ingredients
 	);
-	const { orders: feedOrders } = useSelector((state: RootState) => state.feed);
-	const { orders: profileOrders } = useSelector(
-		(state: RootState) => state.profileOrders
+	const { orders: feedOrders, wsConnected: feedWsConnected } = useAppSelector(
+		(state: RootState) => state.feed
 	);
-
-	const getCookie = (name: string): string | undefined => {
-		const matches = document.cookie.match(
-			new RegExp(
-				`(?:^|; )${name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1')}=([^;]*)`
-			)
-		);
-		return matches ? decodeURIComponent(matches[1]) : undefined;
-	};
+	const { orders: profileOrders, wsConnected: profileWsConnected } =
+		useAppSelector((state: RootState) => state.profileOrders);
 
 	useEffect(() => {
 		dispatch(syncAccessToken());
@@ -87,29 +75,44 @@ export const App: React.FC = () => {
 		const isFeedPage = location.pathname.startsWith('/feed');
 		const isProfileOrdersPage = location.pathname.startsWith('/profile/orders');
 
-		if (isFeedPage && feedOrders.length === 0) {
-			dispatch(feedWsConnectionStart(ORDERS_ALL_URL));
+		if (isFeedPage && feedOrders.length === 0 && !feedWsConnected) {
+			dispatch(
+				wsConnectionStart({
+					url: ORDERS_ALL_URL,
+					connectionId: 'feed',
+				})
+			);
 		}
 
-		if (isProfileOrdersPage && profileOrders.length === 0) {
+		if (
+			isProfileOrdersPage &&
+			profileOrders.length === 0 &&
+			!profileWsConnected
+		) {
 			if (!accessToken) {
 				navigate('/login');
 				return;
 			}
-			dispatch(profileOrdersWsConnectionStart(ORDERS_URL));
+			dispatch(
+				wsConnectionStart({
+					url: ORDERS_URL,
+					connectionId: 'profile',
+					token: accessToken, // Преобразуем null в undefined
+				})
+			);
 		}
 
 		// Закрываем WebSocket-соединение и очищаем state.order при уходе
-		return () => {
-			if (isFeedPage && feedOrders.length > 0) {
-				dispatch(feedWsClose());
-				dispatch(clearOrder());
-			}
-			if (isProfileOrdersPage && profileOrders.length > 0) {
-				dispatch(profileOrdersWsClose());
-				dispatch(clearOrder());
-			}
-		};
+		// return () => {
+		// 	if (isFeedPage && feedWsConnected) {
+		// 		dispatch(wsConnectionClose('feed'));
+		// 		dispatch(clearOrder());
+		// 	}
+		// 	if (isProfileOrdersPage && profileWsConnected) {
+		// 		dispatch(wsConnectionClose('profile'));
+		// 		dispatch(clearOrder());
+		// 	}
+		// };
 	}, [
 		dispatch,
 		location.pathname,
@@ -117,6 +120,8 @@ export const App: React.FC = () => {
 		accessToken,
 		feedOrders.length,
 		profileOrders.length,
+		feedWsConnected,
+		profileWsConnected,
 		navigate,
 	]);
 
@@ -170,7 +175,6 @@ export const App: React.FC = () => {
 	};
 
 	if (!authChecked) {
-		console.log('App: Rendering loading state, auth not checked');
 		return <p>Загрузка...</p>;
 	}
 

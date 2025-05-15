@@ -8,8 +8,8 @@ import authSlice from './auth/reducer';
 import pendingOrder from './pending-order/reducer';
 import feedSlice from './feed/reducer';
 import profileOrdersSlice from './profile-orders/reducer';
-import { feedSocketMiddleware } from './middleware/feedSocketMiddleware';
-import { profileOrdersSocketMiddleware } from './middleware/profileOrdersSocketMiddleware';
+import { socketMiddleware } from './middleware/socketMiddleware';
+import { wsActionTypes } from './websocket/actions'; // Исправленный импорт
 
 export const store = configureStore({
 	reducer: {
@@ -25,10 +25,7 @@ export const store = configureStore({
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware({
 			serializableCheck: false,
-		}).concat([
-			feedSocketMiddleware() as Middleware<{}, RootState>,
-			profileOrdersSocketMiddleware() as Middleware<{}, RootState>,
-		]),
+		}).concat([socketMiddleware(wsActionTypes) as Middleware<{}, RootState>]),
 });
 
 export type AppDispatch = typeof store.dispatch;

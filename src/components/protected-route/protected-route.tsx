@@ -1,6 +1,6 @@
 import React, { useEffect, useState, FC } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useAppSelector } from '../../hooks/redux';
 import { Preloader } from '../preloader/preloader';
 import { RootState } from '../../types/types';
 
@@ -15,7 +15,7 @@ export const ProtectedRoute: FC<ProtectedRouteProps> = ({
 	onlyUnAuth = false,
 	requireForgotPassword = false,
 }) => {
-	const { user, authChecked } = useSelector((state: RootState) => state.auth);
+	const { user, authChecked } = useAppSelector((state: RootState) => state.auth);
 	const location = useLocation();
 	const [hasVisitedForgotPassword, setHasVisitedForgotPassword] =
 		useState(false);

@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import s from './sign-in.module.scss';
 import {
 	Input,
@@ -27,13 +27,13 @@ interface LoginUserPayload {
 export const SignIn: FC<SignInProps> = () => {
 	const [email, setEmail] = useState<string>('');
 	const [password, setPassword] = useState<string>('');
-	const dispatch = useDispatch<AppDispatch>();
+	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const location = useLocation();
-	const { loading, error, user } = useSelector(
+	const { loading, error, user } = useAppSelector(
 		(state: RootState) => state.auth
 	);
-	const { pendingOrder } = useSelector(
+	const { pendingOrder } = useAppSelector(
 		(state: RootState) => state.pendingOrder
 	);
 

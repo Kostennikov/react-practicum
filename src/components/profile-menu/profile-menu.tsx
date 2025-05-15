@@ -1,14 +1,14 @@
 import { clsx } from 'clsx';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { checkAuth, logoutUser } from '../../services/auth/reducer';
 import s from './profile-menu.module.scss';
 import { RootState, AppDispatch } from '../../types/types';
 
 export const ProfileMenu = () => {
-	const dispatch = useDispatch<AppDispatch>();
+	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-	const { loading, error } = useSelector((state: RootState) => state.auth);
+	const { loading, error } = useAppSelector((state: RootState) => state.auth);
 
 	const handleLogout = async () => {
 		try {

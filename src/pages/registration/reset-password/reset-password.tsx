@@ -1,7 +1,7 @@
 import React, { useState, useRef, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import s from './reset-password.module.scss';
 import {
 	Input,
@@ -15,10 +15,10 @@ export const ResetPassword: React.FC = () => {
 	const [password, setPassword] = useState<string>('');
 	const [token, setToken] = useState<string>('');
 
-	const dispatch = useDispatch<AppDispatch>();
+	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 
-	const { loading, error } = useSelector((state: RootState) => state.auth);
+	const { loading, error } = useAppSelector((state: RootState) => state.auth);
 
 	const inputRef = useRef<HTMLInputElement>(null);
 

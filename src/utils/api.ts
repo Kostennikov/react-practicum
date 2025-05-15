@@ -22,6 +22,11 @@ interface RequestOptions extends Omit<RequestInit, 'body'> {
 	body?: Record<string, unknown> | string;
 }
 
+export interface RequestResponse<T> {
+	status: number;
+	data: ApiResponse<T>;
+}
+
 const getCookie = (name: string): string | undefined => {
 	const matches = document.cookie.match(
 		new RegExp(
@@ -54,6 +59,8 @@ export async function request<T>(
 	const url = `${BASE_URL}${endpoint}`;
 
 	const makeRequest = async (customOptions: RequestOptions) => {
+		const token = getCookie('accessToken');
+
 		const res = await fetch(url, {
 			...customOptions,
 			body:
@@ -64,6 +71,7 @@ export async function request<T>(
 					: undefined,
 			headers: {
 				'Content-Type': 'application/json',
+				...(token ? { Authorization: token } : {}),
 				...customOptions.headers,
 			},
 		});
@@ -71,20 +79,15 @@ export async function request<T>(
 	};
 
 	try {
-		console.log(`Request to ${endpoint} with headers:`, options.headers);
 		return await makeRequest(options);
 	} catch (error: any) {
 		if (error.message.includes('403')) {
-			console.log(
-				`Request to ${endpoint}: 403 Forbidden, attempting to refresh token`
-			);
 			try {
 				const refreshResult = await store.dispatch(refreshToken()).unwrap();
 				if (!refreshResult.accessToken) {
 					throw new Error('Не удалось обновить токен');
 				}
 
-				console.log(`Request to ${endpoint}: Token refreshed, retrying`);
 				const newOptions = {
 					...options,
 					headers: {

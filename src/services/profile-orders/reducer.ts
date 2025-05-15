@@ -1,10 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import {
-	ProfileOrdersState,
-	ProfileOrdersWsActionTypes,
-	Order,
-	profileOrdersWsGetMessage,
-} from '../../types/types';
+import { ProfileOrdersState, Order } from '../../types/types';
+import { wsActionTypes } from '../websocket/actions';
 
 const initialState: ProfileOrdersState = {
 	orders: [],
@@ -18,64 +14,84 @@ const initialState: ProfileOrdersState = {
 const profileOrdersSlice = createSlice({
 	name: 'profileOrders',
 	initialState,
-	reducers: {
-		wsConnectionSuccess(state) {
-			state.wsConnected = true;
-			state.wsError = null;
-			state.wsCloseInfo = null;
-		},
-		wsConnectionError(state, action: PayloadAction<string>) {
-			state.wsConnected = false;
-			state.wsError = action.payload;
-		},
-		wsConnectionClosed(
-			state,
-			action: PayloadAction<{ code: number; reason: string }>
-		) {
-			state.wsConnected = false;
-			state.wsCloseInfo = action.payload;
-		},
-	},
+	reducers: {},
 	extraReducers: (builder) => {
-		builder.addCase(profileOrdersWsGetMessage, (state, action) => {
-			const { orders, success } = action.payload;
-			if (success) {
-				const validOrders = orders.filter(
-					(order) =>
-						order._id &&
-						order.number &&
-						order.name &&
-						order.status &&
-						Array.isArray(order.ingredients) &&
-						order.createdAt &&
-						order.updatedAt
-				);
-				const now = new Date();
-				const updatedOrders = validOrders.map((order) => {
-					const createdAt = new Date(order.createdAt);
-					const timeDiff = (now.getTime() - createdAt.getTime()) / 1000;
-					if (timeDiff > 15 && order.status === 'created') {
-						return { ...order, status: 'pending' as 'pending' };
+		builder
+			.addCase(
+				wsActionTypes.WS_CONNECTION_SUCCESS,
+				(state, action: PayloadAction<{ connectionId: string }>) => {
+					if (action.payload.connectionId === 'profile') {
+						state.wsConnected = true;
+						state.wsError = null;
+						state.wsCloseInfo = null;
 					}
-					return order;
-				});
-				state.orders = updatedOrders;
-			} else {
-				console.error(
-					'ProfileOrders Reducer: Invalid data received',
-					action.payload
-				);
-				state.wsError = 'Invalid data received';
-			}
-		});
+				}
+			)
+			.addCase(
+				wsActionTypes.WS_CONNECTION_ERROR,
+				(
+					state,
+					action: PayloadAction<{ connectionId: string; error: string }>
+				) => {
+					if (action.payload.connectionId === 'profile') {
+						state.wsConnected = false;
+						state.wsError = action.payload.error;
+					}
+				}
+			)
+			.addCase(
+				wsActionTypes.WS_CONNECTION_CLOSED,
+				(
+					state,
+					action: PayloadAction<{
+						connectionId: string;
+						code: number;
+						reason: string;
+					}>
+				) => {
+					if (action.payload.connectionId === 'profile') {
+						state.wsConnected = false;
+						state.wsCloseInfo = {
+							code: action.payload.code,
+							reason: action.payload.reason,
+						};
+					}
+				}
+			)
+			.addCase(
+				wsActionTypes.WS_GET_MESSAGE,
+				(state, action: PayloadAction<{ connectionId: string; data: any }>) => {
+					if (action.payload.connectionId === 'profile') {
+						const { orders, success } = action.payload.data;
+						if (success) {
+							const validOrders = orders.filter(
+								(order: Order) =>
+									order._id &&
+									order.number &&
+									order.name &&
+									order.status &&
+									Array.isArray(order.ingredients) &&
+									order.createdAt &&
+									order.updatedAt
+							);
+							const now = new Date();
+							const updatedOrders = validOrders.map((order: Order) => {
+								const createdAt = new Date(order.createdAt);
+								const timeDiff = (now.getTime() - createdAt.getTime()) / 1000;
+								if (timeDiff > 15 && order.status === 'created') {
+									return { ...order, status: 'pending' as 'pending' };
+								}
+								return order;
+							});
+							state.orders = updatedOrders;
+						} else {
+							state.wsError = 'Invalid data received';
+						}
+					}
+				}
+			);
 	},
 });
-
-export const {
-	wsConnectionSuccess: profileOrdersWsConnectionSuccess,
-	wsConnectionError: profileOrdersWsConnectionError,
-	wsConnectionClosed: profileOrdersWsConnectionClosed,
-} = profileOrdersSlice.actions;
 
 export const { reducer: profileOrdersReducer } = profileOrdersSlice;
 export default profileOrdersSlice;

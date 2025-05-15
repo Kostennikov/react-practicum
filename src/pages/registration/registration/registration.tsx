@@ -1,7 +1,7 @@
 import React, { FC, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import s from './registration.module.scss';
 import {
 	Input,
@@ -25,9 +25,9 @@ export const Registration: FC<RegistrationProps> = () => {
 	const [email, setEmail] = useState<string>('');
 	const [password, setPassword] = useState<string>('');
 	const [name, setName] = useState<string>('');
-	const dispatch = useDispatch<AppDispatch>();
+	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-	const { loading, error } = useSelector((state: RootState) => state.auth);
+	const { loading, error } = useAppSelector((state: RootState) => state.auth);
 
 	const nameInputRef = useRef<HTMLInputElement>(null);
 	const emailInputRef = useRef<HTMLInputElement>(null);

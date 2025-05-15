@@ -1,4 +1,3 @@
-import { createAction } from '@reduxjs/toolkit';
 import { ThunkDispatch } from 'redux-thunk';
 import { AnyAction } from 'redux';
 export interface Ingredient {
@@ -127,143 +126,15 @@ export interface ProfileOrdersState {
 	error: string | null;
 }
 
-export enum FeedWsActionTypes {
-	WS_CONNECTION_START = 'FEED_WS_CONNECTION_START',
-	WS_CONNECTION_SUCCESS = 'FEED_WS_CONNECTION_SUCCESS',
-	WS_CONNECTION_ERROR = 'FEED_WS_CONNECTION_ERROR',
-	WS_CONNECTION_CLOSED = 'FEED_WS_CONNECTION_CLOSED',
-	WS_GET_MESSAGE = 'FEED_WS_GET_MESSAGE',
-	WS_SEND_MESSAGE = 'FEED_WS_SEND_MESSAGE',
+export interface WsActionTypes {
+	WS_CONNECTION_START: string;
+	WS_CONNECTION_SUCCESS: string;
+	WS_CONNECTION_ERROR: string;
+	WS_CONNECTION_CLOSED: string;
+	WS_GET_MESSAGE: string;
+	WS_SEND_MESSAGE: string;
+	WS_CONNECTION_CLOSE: string;
 }
-
-export enum ProfileOrdersWsActionTypes {
-	WS_CONNECTION_START = 'PROFILE_ORDERS_WS_CONNECTION_START',
-	WS_CONNECTION_SUCCESS = 'PROFILE_ORDERS_WS_CONNECTION_SUCCESS',
-	WS_CONNECTION_ERROR = 'PROFILE_ORDERS_WS_CONNECTION_ERROR',
-	WS_CONNECTION_CLOSED = 'PROFILE_ORDERS_WS_CONNECTION_CLOSED',
-	WS_GET_MESSAGE = 'PROFILE_ORDERS_WS_GET_MESSAGE',
-	WS_SEND_MESSAGE = 'PROFILE_ORDERS_WS_SEND_MESSAGE',
-}
-
-export interface ProfileOrdersWsAction {
-	type: ProfileOrdersWsActionTypes;
-	payload?: any;
-}
-
-// Action creators for Feed
-export const feedWsConnectionStart = createAction<string>(
-	FeedWsActionTypes.WS_CONNECTION_START
-);
-export const feedWsConnectionSuccess = createAction(
-	FeedWsActionTypes.WS_CONNECTION_SUCCESS
-);
-export const feedWsConnectionError = createAction<string>(
-	FeedWsActionTypes.WS_CONNECTION_ERROR
-);
-export const feedWsConnectionClosed = createAction<{
-	code: number;
-	reason: string;
-}>(FeedWsActionTypes.WS_CONNECTION_CLOSED);
-export const feedWsGetMessage = createAction<{
-	orders: Order[];
-	total: number;
-	totalToday: number;
-	success: boolean;
-}>(FeedWsActionTypes.WS_GET_MESSAGE);
-export const feedWsSendMessage = createAction<any>(
-	FeedWsActionTypes.WS_SEND_MESSAGE
-);
-
-//ProfileOrders
-export const profileOrdersWsConnectionStart = createAction<string>(
-	ProfileOrdersWsActionTypes.WS_CONNECTION_START
-);
-export const profileOrdersWsConnectionSuccess = createAction(
-	ProfileOrdersWsActionTypes.WS_CONNECTION_SUCCESS
-);
-export const profileOrdersWsConnectionError = createAction<string>(
-	ProfileOrdersWsActionTypes.WS_CONNECTION_ERROR
-);
-export const profileOrdersWsConnectionClosed = createAction<{
-	code: number;
-	reason: string;
-}>(ProfileOrdersWsActionTypes.WS_CONNECTION_CLOSED);
-export const profileOrdersWsGetMessage = createAction<{
-	orders: Order[];
-	success: boolean;
-}>(ProfileOrdersWsActionTypes.WS_GET_MESSAGE);
-export const profileOrdersWsSendMessage = createAction<any>(
-	ProfileOrdersWsActionTypes.WS_SEND_MESSAGE
-);
-
-// Типы для Feed и WebSocket
-export enum WsActionTypes {
-	WS_CONNECTION_START = 'WS_CONNECTION_START',
-	WS_CONNECTION_SUCCESS = 'WS_CONNECTION_SUCCESS',
-	WS_CONNECTION_ERROR = 'WS_CONNECTION_ERROR',
-	WS_CONNECTION_CLOSED = 'WS_CONNECTION_CLOSED',
-	WS_GET_MESSAGE = 'WS_GET_MESSAGE',
-	WS_SEND_MESSAGE = 'WS_SEND_MESSAGE',
-}
-
-export const wsGetMessageAction = createAction<{
-	orders: Order[];
-	total: number;
-	totalToday: number;
-	success: boolean;
-}>(WsActionTypes.WS_GET_MESSAGE);
-
-export interface WsConnectionStart {
-	type: WsActionTypes.WS_CONNECTION_START;
-	payload: string;
-}
-
-export interface WsConnectionSuccess {
-	type: WsActionTypes.WS_CONNECTION_SUCCESS;
-}
-
-export interface WsConnectionError {
-	type: WsActionTypes.WS_CONNECTION_ERROR;
-	payload: string;
-}
-
-export interface WsConnectionClosed {
-	type: WsActionTypes.WS_CONNECTION_CLOSED;
-}
-// export interface feedWsConnectionClose {
-// 	type: WsActionTypes.WS_CONNECTION_CLOSED;
-// }
-
-// export const feedWsConnectionClose = () => ({
-// 	type: 'FEED_WS_CONNECTION_CLOSE',
-// });
-
-// export const profileOrdersWsConnectionClose = () => ({
-// 	type: 'PROFILE_ORDERS_WS_CONNECTION_CLOSE',
-// });
-
-export interface WsGetMessage {
-	type: WsActionTypes.WS_GET_MESSAGE;
-	payload: {
-		orders: Order[];
-		total: number;
-		totalToday: number;
-		success: boolean;
-	};
-}
-
-export interface WsSendMessage {
-	type: WsActionTypes.WS_SEND_MESSAGE;
-	payload: any;
-}
-
-export type WsActions =
-	| WsConnectionStart
-	| WsConnectionSuccess
-	| WsConnectionError
-	| WsConnectionClosed
-	| WsGetMessage
-	| WsSendMessage;
 
 export interface RootState {
 	auth: AuthState;

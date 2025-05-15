@@ -1,3 +1,4 @@
+
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { INGREDIENTS_ENDPOINT } from '../../config';
 import { request } from '../../utils/api';

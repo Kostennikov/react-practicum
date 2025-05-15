@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import { useParams } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { clsx } from 'clsx';
 import s from './ingredient-page.module.scss';
 import IngredientDetails from '../../components/burger-ingredients/ingredient-details/ingredient-details';
@@ -10,7 +10,7 @@ interface IngredientPageProps {}
 
 export const IngredientPage: FC<IngredientPageProps> = () => {
 	const { id } = useParams<{ id: string }>();
-	const { ingredients, loading, error } = useSelector(
+	const { ingredients, loading, error } = useAppSelector(
 		(state: RootState) => state.ingredients
 	);
 

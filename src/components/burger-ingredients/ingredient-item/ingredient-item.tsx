@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import { useDrag, DragSourceMonitor } from 'react-dnd';
 import type { Identifier } from 'dnd-core';
 
@@ -35,11 +35,11 @@ export const IngredientItem: React.FC<IngredientItemProps> = ({
 	ingredient,
 	onIngredientClick,
 }) => {
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 
 	const dragType = ingredient.type === 'bun' ? 'bun' : 'ingredient';
 
-	const { bun, burgerIngredients } = useSelector(
+	const { bun, burgerIngredients } = useAppSelector(
 		(state: RootState) =>
 			state.burgerConstructor ?? { bun: null, burgerIngredients: [] }
 	);

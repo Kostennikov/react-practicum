@@ -32,13 +32,19 @@ export const createOrder = createAsyncThunk<
 				body: JSON.stringify({ ingredients: ingredientIds }),
 			});
 
-			console.log('createOrder: API response:', data); // Отладка
+			console.log('createOrder: API response:', data);
 
-			if (!data.success || !data.order)
-				throw new Error(data.message || 'Ошибка создания заказа');
-			return data.order as Order;
+			// Проверяем, что data имеет тип CreateOrderApiResponse
+			if ('order' in data) {
+				if (!data.success || !data.order) {
+					throw new Error(data.message || 'Ошибка создания заказа');
+				}
+				return data.order as Order;
+			} else {
+				throw new Error('Некорректный формат ответа API');
+			}
 		} catch (error: any) {
-			console.error('createOrder: Error:', error.message); // Отладка
+			console.error('createOrder: Error:', error.message);
 			return rejectWithValue(error.message);
 		}
 	}
@@ -52,15 +58,13 @@ export const fetchOrderByNumber = createAsyncThunk<
 	'order/fetchOrderByNumber',
 	async (number: number, { getState, rejectWithValue }) => {
 		try {
-			const { accessToken } = getState().auth;
-			if (!accessToken)
-				throw new Error('Токен отсутствует, требуется авторизация');
-
+			const { accessToken } = (getState() as RootState).auth;
 			const headers: HeadersInit = { 'Content-Type': 'application/json' };
-			headers.Authorization = `Bearer ${accessToken}`;
+			if (accessToken) {
+				headers.Authorization = `Bearer ${accessToken}`;
+			}
 
-			// console.log(`fetchOrderByNumber: Fetching order with number ${number}`);
-			// console.log('fetchOrderByNumber: accessToken:', accessToken);
+			console.log(`fetchOrderByNumber: Fetching order with number ${number}`);
 			const data = await request(`${ORDER_ENDPOINT}/${number}`, {
 				method: 'GET',
 				headers,
@@ -68,6 +72,7 @@ export const fetchOrderByNumber = createAsyncThunk<
 
 			console.log('fetchOrderByNumber: API response:', data);
 
+			// Проверяем, что data имеет тип FetchOrderByNumberApiResponse
 			if ('orders' in data) {
 				if (!data.success) {
 					throw new Error(data.message || 'Ошибка получения заказа');
@@ -108,7 +113,7 @@ const orderSlice = createSlice({
 	initialState,
 	reducers: {
 		clearOrder: (state) => {
-			console.log('orderSlice: Clearing order'); // Отладка
+			console.log('orderSlice: Clearing order');
 			state.order = null;
 			state.error = null;
 		},
@@ -116,37 +121,37 @@ const orderSlice = createSlice({
 	extraReducers: (builder) => {
 		builder
 			.addCase(createOrder.pending, (state) => {
-				console.log('createOrder: Pending'); // Отладка
+				console.log('createOrder: Pending');
 				state.loading = true;
 				state.error = null;
 				state.order = null;
 			})
 			.addCase(createOrder.fulfilled, (state, action: PayloadAction<Order>) => {
-				console.log('createOrder: Fulfilled, order:', action.payload); // Отладка
+				console.log('createOrder: Fulfilled, order:', action.payload);
 				state.loading = false;
 				state.order = action.payload;
 			})
 			.addCase(createOrder.rejected, (state, action) => {
-				console.log('createOrder: Rejected, error:', action.payload); // Отладка
+				console.log('createOrder: Rejected, error:', action.payload);
 				state.order = null;
 				state.loading = false;
 				state.error = action.payload as string;
 			})
 			.addCase(fetchOrderByNumber.pending, (state) => {
-				console.log('fetchOrderByNumber: Pending'); // Отладка
+				console.log('fetchOrderByNumber: Pending');
 				state.loading = true;
 				state.error = null;
 			})
 			.addCase(
 				fetchOrderByNumber.fulfilled,
 				(state, action: PayloadAction<Order>) => {
-					console.log('fetchOrderByNumber: Fulfilled, order:', action.payload); // Отладка
+					console.log('fetchOrderByNumber: Fulfilled, order:', action.payload);
 					state.loading = false;
 					state.order = action.payload;
 				}
 			)
 			.addCase(fetchOrderByNumber.rejected, (state, action) => {
-				console.log('fetchOrderByNumber: Rejected, error:', action.payload); // Отладка
+				console.log('fetchOrderByNumber: Rejected, error:', action.payload);
 				state.loading = false;
 				state.error = action.payload as string;
 			});

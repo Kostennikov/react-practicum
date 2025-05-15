@@ -336,7 +336,7 @@ const authSlice = createSlice({
 		syncAccessToken: (state) => {
 			const accessToken = getCookie('accessToken');
 			if (accessToken) {
-				state.accessToken = `Bearer ${accessToken}`;
+				state.accessToken = accessToken;
 			}
 		},
 	},

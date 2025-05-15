@@ -1,7 +1,7 @@
 import React from 'react';
 import { clsx } from 'clsx';
 import s from './feed-details.module.scss';
-import { useSelector } from 'react-redux';
+import { useAppSelector } from '../../../hooks/redux';
 import { RootState, Order, Ingredient } from '../../../types/types';
 import {
 	CurrencyIcon,
@@ -13,16 +13,13 @@ interface FeedDetailsProps {
 }
 
 export const FeedDetails: React.FC<FeedDetailsProps> = ({ order }) => {
-	const { ingredientsMap } = useSelector(
+	const { ingredientsMap } = useAppSelector(
 		(state: RootState) => state.ingredients
 	);
 
 	if (!order) {
-		console.log('FeedDetails: Order is null or undefined');
 		return <p>Заказ не найден</p>;
 	}
-
-	console.log('FeedDetails: Received order:', order);
 
 	const orderIngredients = order.ingredients
 		.map((id) => ingredientsMap.get(id))

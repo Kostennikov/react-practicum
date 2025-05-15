@@ -1,7 +1,7 @@
 import React, { FC, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import s from './forgot-password.module.scss';
 import {
 	Input,
@@ -16,9 +16,9 @@ type InputRef = React.RefObject<HTMLInputElement>;
 
 export const ForgotPassword: FC<ForgotPasswordProps> = () => {
 	const [value, setValue] = useState<string>('');
-	const dispatch = useDispatch<AppDispatch>();
+	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-	const { loading, error } = useSelector((state: RootState) => state.auth);
+	const { loading, error } = useAppSelector((state: RootState) => state.auth);
 
 	const inputRef = useRef<HTMLInputElement>(null);
 

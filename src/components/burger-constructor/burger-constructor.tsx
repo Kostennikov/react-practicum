@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { useNavigate, useLocation } from 'react-router-dom'; // Добавляем useLocation
 import { clsx } from 'clsx';
 import { useDrop, DropTargetMonitor } from 'react-dnd';
@@ -47,16 +47,16 @@ interface OrderDetailsProps {
 }
 
 export const BurgerConstructor: React.FC = () => {
-	const dispatch = useDispatch<AppDispatch>();
+	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const location = useLocation();
 	const [orderModalOpen, setOrderModalOpen] = useState<boolean>(false);
 
-	const { bun, burgerIngredients } = useSelector(
+	const { bun, burgerIngredients } = useAppSelector(
 		(state: RootState) => state.burgerConstructor
 	);
-	const { user } = useSelector((state: RootState) => state.auth);
-	const { order, loading, error } = useSelector(
+	const { user } = useAppSelector((state: RootState) => state.auth);
+	const { order, loading, error } = useAppSelector(
 		(state: RootState) => state.order
 	);
 
@@ -160,16 +160,15 @@ export const BurgerConstructor: React.FC = () => {
 	}, [dispatch, navigate, user, bun, burgerIngredients]);
 
 	// Очищаем state.order при монтировании на главной странице
-	useEffect(() => {
-		if (location.pathname === '/') {
-			dispatch(clearOrder());
-		}
-	}, [dispatch, location.pathname]);
+	// useEffect(() => {
+	// 	if (location.pathname === '/') {
+	// 		dispatch(clearOrder());
+	// 	}
+	// }, [dispatch, location.pathname]);
 
 	// Открываем модальное окно только после успешного создания заказа
 	useEffect(() => {
 		if (order && !loading && !error) {
-			console.log('BurgerConstructor: Order created, order:', order);
 			setOrderModalOpen(true);
 		}
 	}, [order, loading, error]);

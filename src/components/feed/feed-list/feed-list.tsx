@@ -1,97 +1,39 @@
 import React, { FC, useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useAppSelector } from '../../../hooks/redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
 import s from './feed-list.module.scss';
-import { ORDERS_ALL_URL, ORDERS_URL } from '../../../config';
 import { FeedItem } from '../feed-item/feed-item';
 import { Preloader } from '../../preloader/preloader';
-import {
-	feedWsConnectionStart,
-	feedWsConnectionClosed,
-	profileOrdersWsConnectionStart,
-	profileOrdersWsConnectionClosed,
-} from '../../../services/feed/action';
 import { RootState, Order, Ingredient } from '../../../types/types';
-
-const getCookie = (name: string): string | undefined => {
-	const matches = document.cookie.match(
-		new RegExp(
-			`(?:^|; )${name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1')}=([^;]*)`
-		)
-	);
-	return matches ? decodeURIComponent(matches[1]) : undefined;
-};
 
 interface FeedListProps {}
 
 export const FeedList: FC<FeedListProps> = () => {
-	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const location = useLocation();
 	const isProfileOrders = location.pathname.startsWith('/profile/orders');
-	const { orders, wsConnected, wsError, wsCloseInfo } = useSelector(
+	const { orders, wsConnected, wsError, wsCloseInfo } = useAppSelector(
 		(state: RootState) => (isProfileOrders ? state.profileOrders : state.feed)
 	);
-	const { total, totalToday } = useSelector((state: RootState) => state.feed);
-	const { ingredientsMap } = useSelector(
+	const { ingredientsMap } = useAppSelector(
 		(state: RootState) => state.ingredients
 	);
-	const { authChecked, accessToken, loading, error } = useSelector(
+	const { authChecked, loading } = useAppSelector(
 		(state: RootState) => state.auth
 	);
 
 	const [showPreloader, setShowPreloader] = useState(true);
 
+	// Управляем прелоадером в useEffect
 	useEffect(() => {
-		if (!authChecked || loading) {
-			return;
-		}
-
-		if (isProfileOrders && !accessToken && !getCookie('accessToken')) {
-			return;
-		}
-
-		const token =
-			accessToken ||
-			(getCookie('accessToken') ? `Bearer ${getCookie('accessToken')}` : null);
-
-		if (authChecked) {
+		if (authChecked && !loading) {
 			setShowPreloader(false);
 		}
+	}, [authChecked, loading]);
 
-		if (isProfileOrders) {
-			dispatch(profileOrdersWsConnectionStart(ORDERS_URL));
-		} else {
-			dispatch(feedWsConnectionStart(ORDERS_ALL_URL));
-		}
-
-		return () => {
-			dispatch(
-				isProfileOrders
-					? profileOrdersWsConnectionClosed({
-							code: 1000,
-							reason: 'Component unmounted',
-					  })
-					: feedWsConnectionClosed({
-							code: 1000,
-							reason: 'Component unmounted',
-					  })
-			);
-		};
-	}, [dispatch, isProfileOrders, authChecked, accessToken, loading]);
-
-	if (!authChecked || loading) {
-		return <p>Проверка авторизации...</p>;
-	}
-
-	const token =
-		accessToken ||
-		(getCookie('accessToken') ? `Bearer ${getCookie('accessToken')}` : null);
-
-	if (isProfileOrders && !token) {
-		navigate('/login');
-		return null;
+	if (!authChecked || loading || showPreloader) {
+		return <Preloader />;
 	}
 
 	if (wsError) {
@@ -110,10 +52,6 @@ export const FeedList: FC<FeedListProps> = () => {
 	const sortedOrders = [...orders].sort(
 		(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
 	);
-
-	if (!authChecked || showPreloader || orders.length === 0) {
-		return <Preloader />;
-	}
 
 	return (
 		<section className={clsx(s.feed__list)}>
