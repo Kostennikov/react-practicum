@@ -2,14 +2,7 @@ import { profileOrdersReducer } from '../src/services/profile-orders/reducer';
 import { wsActionTypes } from '../src/services/websocket/actions';
 
 // Начальное состояние
-const initialState = {
-	orders: [],
-	wsConnected: false,
-	wsError: null,
-	wsCloseInfo: null,
-	loading: false,
-	error: null,
-};
+const initialState = profileOrdersReducer(undefined, {});
 
 // Пример заказов для тестов
 const mockOrders = [

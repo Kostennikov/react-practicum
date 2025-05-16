@@ -5,9 +5,7 @@ import {
 } from '../src/services/single-ingredient/reducer';
 
 // Начальное состояние
-const initialState = {
-	singleIngredient: null,
-};
+const initialState = singleIngredientReducer(undefined, {});
 
 // Пример ингредиента для тестов
 const mockIngredient = {

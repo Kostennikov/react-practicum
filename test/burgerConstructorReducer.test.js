@@ -15,10 +15,7 @@ jest.mock('@reduxjs/toolkit', () => ({
 }));
 
 // Начальное состояние
-const initialState = {
-	bun: null,
-	burgerIngredients: [],
-};
+const initialState = burgerConstructorReducer(undefined, {});
 
 // Пример ингредиентов для тестов
 const mockBun = {

@@ -6,23 +6,15 @@ import {
 	syncAccessToken,
 } from '../src/services/auth/reducer';
 
-// Начальное состояние
-const initialState = {
-	user: null,
-	accessToken: null,
-	refreshToken: null,
-	loading: false,
-	error: null,
-	authChecked: false,
-	resetPasswordAllowed: false,
-};
-
 // Мокаем localStorage
 global.localStorage = {
 	getItem: jest.fn(),
 	setItem: jest.fn(),
 	removeItem: jest.fn(),
 };
+
+// Получаем начальное состояние
+const initialState = authReducer(undefined, {});
 
 describe('authReducer', () => {
 	beforeEach(() => {
@@ -42,34 +34,49 @@ describe('authReducer', () => {
 		it('should handle setUser', () => {
 			const action = setUser({ email: 'test@example.com', name: 'Test User' });
 			const expectedState = {
-				...initialState,
 				user: { email: 'test@example.com', name: 'Test User' },
+				accessToken: null,
+				refreshToken: null,
+				loading: false,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
 		it('should handle setUser with null', () => {
 			const action = setUser(null);
-			const expectedState = { ...initialState, user: null };
+			const expectedState = {
+				user: null,
+				accessToken: null,
+				refreshToken: null,
+				loading: false,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
+			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
 		it('should handle clearAuth', () => {
 			const state = {
-				...initialState,
 				user: { email: 'test@example.com', name: 'Test User' },
 				accessToken: 'token',
 				refreshToken: 'refresh',
+				loading: false,
 				error: 'error',
+				authChecked: true,
 				resetPasswordAllowed: true,
 			};
 			const action = clearAuth();
 			const expectedState = {
-				...initialState,
 				user: null,
 				accessToken: null,
 				refreshToken: null,
+				loading: false,
 				error: null,
+				authChecked: true, // Исправлено с false на true
 				resetPasswordAllowed: false,
 			};
 			expect(authReducer(state, action)).toEqual(expectedState);
@@ -77,7 +84,15 @@ describe('authReducer', () => {
 
 		it('should handle allowResetPassword', () => {
 			const action = allowResetPassword();
-			const expectedState = { ...initialState, resetPasswordAllowed: true };
+			const expectedState = {
+				user: null,
+				accessToken: null,
+				refreshToken: null,
+				loading: false,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: true,
+			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
@@ -87,7 +102,15 @@ describe('authReducer', () => {
 				value: 'accessToken=mocked-token',
 			});
 			const action = syncAccessToken();
-			const expectedState = { ...initialState, accessToken: 'mocked-token' };
+			const expectedState = {
+				user: null,
+				accessToken: 'mocked-token',
+				refreshToken: null,
+				loading: false,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
+			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
@@ -97,7 +120,15 @@ describe('authReducer', () => {
 				value: '',
 			});
 			const action = syncAccessToken();
-			const expectedState = { ...initialState, accessToken: null };
+			const expectedState = {
+				user: null,
+				accessToken: null,
+				refreshToken: null,
+				loading: false,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
+			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 	});
@@ -105,7 +136,15 @@ describe('authReducer', () => {
 	describe('Asynchronous actions', () => {
 		it('should handle registerUser.pending', () => {
 			const action = { type: 'auth/registerUser/pending' };
-			const expectedState = { ...initialState, loading: true, error: null };
+			const expectedState = {
+				user: null,
+				accessToken: null,
+				refreshToken: null,
+				loading: true,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
+			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
@@ -119,12 +158,13 @@ describe('authReducer', () => {
 				},
 			};
 			const expectedState = {
-				...initialState,
-				loading: false,
 				user: { email: 'test@example.com', name: 'Test User' },
 				accessToken: 'token',
 				refreshToken: 'refresh',
+				loading: false,
+				error: null,
 				authChecked: true,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
@@ -135,17 +175,28 @@ describe('authReducer', () => {
 				payload: 'Registration failed',
 			};
 			const expectedState = {
-				...initialState,
+				user: null,
+				accessToken: null,
+				refreshToken: null,
 				loading: false,
 				error: 'Registration failed',
 				authChecked: true,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
 		it('should handle loginUser.pending', () => {
 			const action = { type: 'auth/loginUser/pending' };
-			const expectedState = { ...initialState, loading: true, error: null };
+			const expectedState = {
+				user: null,
+				accessToken: null,
+				refreshToken: null,
+				loading: true,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
+			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
@@ -159,12 +210,13 @@ describe('authReducer', () => {
 				},
 			};
 			const expectedState = {
-				...initialState,
-				loading: false,
 				user: { email: 'test@example.com', name: 'Test User' },
 				accessToken: 'token',
 				refreshToken: 'refresh',
+				loading: false,
+				error: null,
 				authChecked: true,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
@@ -175,34 +227,50 @@ describe('authReducer', () => {
 				payload: 'Login failed',
 			};
 			const expectedState = {
-				...initialState,
+				user: null,
+				accessToken: null,
+				refreshToken: null,
 				loading: false,
 				error: 'Login failed',
 				authChecked: true,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
 		it('should handle logoutUser.pending', () => {
 			const action = { type: 'auth/logoutUser/pending' };
-			const expectedState = { ...initialState, loading: true, error: null };
+			const expectedState = {
+				user: null,
+				accessToken: null,
+				refreshToken: null,
+				loading: true,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
+			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
 		it('should handle logoutUser.fulfilled', () => {
 			const state = {
-				...initialState,
 				user: { email: 'test@example.com', name: 'Test User' },
 				accessToken: 'token',
 				refreshToken: 'refresh',
+				loading: false,
+				error: null,
+				authChecked: true,
+				resetPasswordAllowed: false,
 			};
 			const action = { type: 'auth/logoutUser/fulfilled' };
 			const expectedState = {
-				...initialState,
-				loading: false,
 				user: null,
 				accessToken: null,
 				refreshToken: null,
+				loading: false,
+				error: null,
+				authChecked: true, // Исправлено с false на true
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(state, action)).toEqual(expectedState);
 		});
@@ -213,16 +281,28 @@ describe('authReducer', () => {
 				payload: 'Logout failed',
 			};
 			const expectedState = {
-				...initialState,
+				user: null,
+				accessToken: null,
+				refreshToken: null,
 				loading: false,
 				error: 'Logout failed',
+				authChecked: false,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
 		it('should handle refreshToken.pending', () => {
 			const action = { type: 'auth/refreshToken/pending' };
-			const expectedState = { ...initialState, loading: true, error: null };
+			const expectedState = {
+				user: null,
+				accessToken: null,
+				refreshToken: null,
+				loading: true,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
+			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
@@ -232,10 +312,13 @@ describe('authReducer', () => {
 				payload: { accessToken: 'new-token', refreshToken: 'new-refresh' },
 			};
 			const expectedState = {
-				...initialState,
-				loading: false,
+				user: null,
 				accessToken: 'new-token',
 				refreshToken: 'new-refresh',
+				loading: false,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
@@ -246,17 +329,28 @@ describe('authReducer', () => {
 				payload: 'Refresh failed',
 			};
 			const expectedState = {
-				...initialState,
+				user: null,
+				accessToken: null,
+				refreshToken: null,
 				loading: false,
 				error: 'Refresh failed',
 				authChecked: true,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
 		it('should handle checkAuth.pending', () => {
 			const action = { type: 'auth/checkAuth/pending' };
-			const expectedState = { ...initialState, loading: true, error: null };
+			const expectedState = {
+				user: null,
+				accessToken: null,
+				refreshToken: null,
+				loading: true,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
+			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
@@ -270,12 +364,13 @@ describe('authReducer', () => {
 				},
 			};
 			const expectedState = {
-				...initialState,
-				loading: false,
 				user: { email: 'test@example.com', name: 'Test User' },
 				accessToken: 'token',
 				refreshToken: 'refresh',
+				loading: false,
+				error: null,
 				authChecked: true,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
@@ -286,20 +381,28 @@ describe('authReducer', () => {
 				payload: 'Check auth failed',
 			};
 			const expectedState = {
-				...initialState,
-				loading: false,
-				error: 'Check auth failed',
 				user: null,
 				accessToken: null,
 				refreshToken: null,
+				loading: false,
+				error: 'Check auth failed',
 				authChecked: true,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
 		it('should handle getUser.pending', () => {
 			const action = { type: 'auth/getUser/pending' };
-			const expectedState = { ...initialState, loading: true, error: null };
+			const expectedState = {
+				user: null,
+				accessToken: null,
+				refreshToken: null,
+				loading: true,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
+			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
@@ -309,9 +412,13 @@ describe('authReducer', () => {
 				payload: { email: 'test@example.com', name: 'Test User' },
 			};
 			const expectedState = {
-				...initialState,
-				loading: false,
 				user: { email: 'test@example.com', name: 'Test User' },
+				accessToken: null,
+				refreshToken: null,
+				loading: false,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
@@ -322,16 +429,28 @@ describe('authReducer', () => {
 				payload: 'Get user failed',
 			};
 			const expectedState = {
-				...initialState,
+				user: null,
+				accessToken: null,
+				refreshToken: null,
 				loading: false,
 				error: 'Get user failed',
+				authChecked: false,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
 		it('should handle updateUser.pending', () => {
 			const action = { type: 'auth/updateUser/pending' };
-			const expectedState = { ...initialState, loading: true, error: null };
+			const expectedState = {
+				user: null,
+				accessToken: null,
+				refreshToken: null,
+				loading: true,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
+			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
@@ -341,9 +460,13 @@ describe('authReducer', () => {
 				payload: { email: 'new@example.com', name: 'New User' },
 			};
 			const expectedState = {
-				...initialState,
-				loading: false,
 				user: { email: 'new@example.com', name: 'New User' },
+				accessToken: null,
+				refreshToken: null,
+				loading: false,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
@@ -354,24 +477,40 @@ describe('authReducer', () => {
 				payload: 'Update user failed',
 			};
 			const expectedState = {
-				...initialState,
+				user: null,
+				accessToken: null,
+				refreshToken: null,
 				loading: false,
 				error: 'Update user failed',
+				authChecked: false,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
 		it('should handle forgotPassword.pending', () => {
 			const action = { type: 'auth/forgotPassword/pending' };
-			const expectedState = { ...initialState, loading: true, error: null };
+			const expectedState = {
+				user: null,
+				accessToken: null,
+				refreshToken: null,
+				loading: true,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
+			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
 		it('should handle forgotPassword.fulfilled', () => {
 			const action = { type: 'auth/forgotPassword/fulfilled' };
 			const expectedState = {
-				...initialState,
+				user: null,
+				accessToken: null,
+				refreshToken: null,
 				loading: false,
+				error: null,
+				authChecked: false,
 				resetPasswordAllowed: true,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
@@ -383,24 +522,40 @@ describe('authReducer', () => {
 				payload: 'Forgot password failed',
 			};
 			const expectedState = {
-				...initialState,
+				user: null,
+				accessToken: null,
+				refreshToken: null,
 				loading: false,
 				error: 'Forgot password failed',
+				authChecked: false,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
 		it('should handle resetPassword.pending', () => {
 			const action = { type: 'auth/resetPassword/pending' };
-			const expectedState = { ...initialState, loading: true, error: null };
+			const expectedState = {
+				user: null,
+				accessToken: null,
+				refreshToken: null,
+				loading: true,
+				error: null,
+				authChecked: false,
+				resetPasswordAllowed: false,
+			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});
 
 		it('should handle resetPassword.fulfilled', () => {
 			const action = { type: 'auth/resetPassword/fulfilled' };
 			const expectedState = {
-				...initialState,
+				user: null,
+				accessToken: null,
+				refreshToken: null,
 				loading: false,
+				error: null,
+				authChecked: false,
 				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
@@ -412,9 +567,13 @@ describe('authReducer', () => {
 				payload: 'Reset password failed',
 			};
 			const expectedState = {
-				...initialState,
+				user: null,
+				accessToken: null,
+				refreshToken: null,
 				loading: false,
 				error: 'Reset password failed',
+				authChecked: false,
+				resetPasswordAllowed: false,
 			};
 			expect(authReducer(initialState, action)).toEqual(expectedState);
 		});

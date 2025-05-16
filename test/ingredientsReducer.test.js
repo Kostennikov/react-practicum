@@ -4,12 +4,7 @@ import {
 } from '../src/services/ingredients/reducer';
 
 // Начальное состояние
-const initialState = {
-	ingredients: [],
-	ingredientsMap: new Map(),
-	loading: false,
-	error: null,
-};
+const initialState = ingredientsReducer(undefined, {});
 
 // Пример ингредиента для тестов
 const mockIngredients = [

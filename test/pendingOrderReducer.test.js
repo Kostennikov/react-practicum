@@ -6,12 +6,7 @@ import {
 import { fetchOrderByNumber } from '../src/services/order/reducer';
 
 // Начальное состояние
-const initialState = {
-	pendingOrder: null,
-	fetchedOrder: null,
-	loading: false,
-	error: null,
-};
+const initialState = pendingOrderReducer(undefined, {});
 
 // Пример ингредиентов и заказа для тестов
 const mockBun = {

@@ -2,16 +2,7 @@ import { feedReducer } from '../src/services/feed/reducer';
 import { wsActionTypes } from '../src/services/websocket/actions';
 
 // Начальное состояние
-const initialState = {
-	orders: [],
-	total: 0,
-	totalToday: 0,
-	wsConnected: false,
-	wsError: null,
-	wsCloseInfo: null,
-	loading: false,
-	error: null,
-};
+const initialState = feedReducer(undefined, {});
 
 // Пример заказов для тестов
 const mockOrders = [

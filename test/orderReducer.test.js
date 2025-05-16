@@ -6,11 +6,7 @@ import {
 } from '../src/services/order/reducer';
 
 // Начальное состояние
-const initialState = {
-	order: null,
-	loading: false,
-	error: null,
-};
+const initialState = orderReducer(undefined, {});
 
 // Пример заказа для тестов
 const mockOrder = {
