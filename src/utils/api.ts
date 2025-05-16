@@ -1,9 +1,5 @@
 import { BASE_URL } from '../config';
-import { refreshToken } from '../services/auth/reducer';
-import { store } from '../services/store'; // Импортируйте ваш Redux store
-
-// Тип для ответа от сервера (общий)
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
 	success: boolean;
 	data?: T;
 	message?: string;
@@ -15,8 +11,7 @@ interface ApiResponse<T> {
 	name?: string;
 }
 
-// Тип для опций запроса
-interface RequestOptions extends Omit<RequestInit, 'body'> {
+export interface RequestOptions extends Omit<RequestInit, 'body'> {
 	method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
 	headers?: Record<string, string>;
 	body?: Record<string, unknown> | string;
@@ -54,7 +49,8 @@ export async function checkResponse<T>(res: Response): Promise<ApiResponse<T>> {
 
 export async function request<T>(
 	endpoint: string,
-	options: RequestOptions = {}
+	options: RequestOptions = {},
+	dispatch?: any
 ): Promise<ApiResponse<T>> {
 	const url = `${BASE_URL}${endpoint}`;
 
@@ -81,9 +77,10 @@ export async function request<T>(
 	try {
 		return await makeRequest(options);
 	} catch (error: any) {
-		if (error.message.includes('403')) {
+		if (error.message.includes('403') && dispatch) {
 			try {
-				const refreshResult = await store.dispatch(refreshToken()).unwrap();
+				const { refreshToken } = await import('../services/auth/reducer');
+				const refreshResult = await dispatch(refreshToken()).unwrap();
 				if (!refreshResult.accessToken) {
 					throw new Error('Не удалось обновить токен');
 				}
