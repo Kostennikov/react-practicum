@@ -9,3 +9,6 @@ export const AUTH_TOKEN_ENDPOINT = '/auth/token';
 export const AUTH_USER_ENDPOINT = '/auth/user';
 export const PASSWORD_RESET_ENDPOINT = '/password-reset';
 export const PASSWORD_RESET_CONFIRM_ENDPOINT = '/password-reset/reset';
+
+export const ORDERS_ALL_URL = 'wss://norma.nomoreparties.space/orders/all';
+export const ORDERS_URL = 'wss://norma.nomoreparties.space/orders';

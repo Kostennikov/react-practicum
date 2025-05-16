@@ -1,0 +1,71 @@
+.ingredient_page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+}
+
+// pages/feed/feed-item/feed-item.module.scss
+.feed_item {
+    background: #1c1c21;
+    border-radius: 40px;
+    padding: 24px;
+    margin-bottom: 16px;
+    cursor: pointer;
+}
+
+.feed_item__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.feed_item__content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.feed_item__ingredients {
+    display: flex;
+    position: relative;
+}
+
+.feed_item__ingredient {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid #4c4cff;
+    background: #131316;
+    overflow: hidden;
+    position: relative;
+    margin-left: -16px;
+
+    &:first-child {
+        margin-left: 0;
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.feed_item__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feed_item__price {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

@@ -1,6 +1,6 @@
 import React, { FC, useEffect } from 'react';
 import { clsx } from 'clsx';
-import { useSelector } from 'react-redux';
+import { useAppSelector } from '../../hooks/redux';
 import { useNavigate } from 'react-router-dom';
 import s from './home.module.scss';
 import { DndProvider } from 'react-dnd';
@@ -13,7 +13,7 @@ interface HomeProps {}
 
 export const Home: FC<HomeProps> = () => {
 	const navigate = useNavigate();
-	const { ingredients, loading, error } = useSelector(
+	const { ingredients, loading, error } = useAppSelector(
 		(state: RootState) => state.ingredients
 	);
 

@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useAppSelector } from '../../hooks/redux';
 import { clsx } from 'clsx';
 import { Tab } from '@ya.praktikum/react-developer-burger-ui-components';
 // import { RootState } from '../../services/store';
@@ -22,7 +22,7 @@ export const BurgerIngredients: React.FC<BurgerIngredientsProps> = ({
 }) => {
 	const [current, setCurrent] = useState<'bun' | 'sauce' | 'main'>('bun');
 
-	const { ingredients } = useSelector(
+	const { ingredients } = useAppSelector(
 		(state: RootState) => state.ingredients ?? { ingredients: [] }
 	);
 

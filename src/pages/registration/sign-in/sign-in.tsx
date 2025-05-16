@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import s from './sign-in.module.scss';
 import {
 	Input,
@@ -15,6 +15,7 @@ import {
 	RootState,
 	BurgerConstructorState,
 	Ingredient,
+	AppDispatch,
 } from '../../../types/types';
 
 interface SignInProps {}
@@ -26,13 +27,13 @@ interface LoginUserPayload {
 export const SignIn: FC<SignInProps> = () => {
 	const [email, setEmail] = useState<string>('');
 	const [password, setPassword] = useState<string>('');
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const location = useLocation();
-	const { loading, error, user } = useSelector(
+	const { loading, error, user } = useAppSelector(
 		(state: RootState) => state.auth
 	);
-	const { pendingOrder } = useSelector(
+	const { pendingOrder } = useAppSelector(
 		(state: RootState) => state.pendingOrder
 	);
 
@@ -55,7 +56,6 @@ export const SignIn: FC<SignInProps> = () => {
 						...burgerIngredients.map((item: Ingredient) => item._id),
 						bun._id,
 					];
-					// @ts-ignore
 					dispatch(createOrder(ingredientIds)).then(() => {
 						dispatch(clearPendingOrder());
 						navigate(from, { replace: true });
@@ -72,7 +72,6 @@ export const SignIn: FC<SignInProps> = () => {
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		// @ts-ignore
 		dispatch(loginUser({ email, password }));
 	};
 

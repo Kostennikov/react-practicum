@@ -5,7 +5,7 @@ import {
 	ConstructorElement,
 	DragIcon,
 } from '@ya.praktikum/react-developer-burger-ui-components';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '../../../hooks/redux';
 import {
 	removeIngredient,
 	moveIngredient,
@@ -24,7 +24,7 @@ export const DraggableIngredient: FC<DraggableIngredientProps> = ({
 	item,
 }) => {
 	const ref = useRef<HTMLLIElement>(null);
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 
 	// Поддержка drop
 	const [, drop] = useDrop({

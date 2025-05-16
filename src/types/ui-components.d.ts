@@ -100,6 +100,11 @@ declare module '@ya.praktikum/react-developer-burger-ui-components' {
 		extraClass?: string;
 	}
 
+	interface FormattedDateProps {
+		date: Date;
+		className?: string;
+	}
+
 	export const Input: FC<InputProps>;
 	export const Logo: FC<LogoProps>;
 	export const BurgerIcon: FC<BurgerIconProps>;
@@ -113,4 +118,5 @@ declare module '@ya.praktikum/react-developer-burger-ui-components' {
 	export const DragIcon: FC<DragIconProps>;
 	export const Tab: FC<TabProps>;
 	export const Counter: FC<CounterProps>;
+	export const FormattedDate: FC<FormattedDateProps>;
 }

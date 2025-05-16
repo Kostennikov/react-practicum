@@ -1,14 +1,14 @@
 import React, { FC, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import s from './forgot-password.module.scss';
 import {
 	Input,
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
-import { forgotPassword } from '../../../services/auth/reducer.js';
-import { RootState } from '../../../types/types';
+import { forgotPassword } from '../../../services/auth/reducer';
+import { RootState, AppDispatch } from '../../../types/types';
 
 interface ForgotPasswordProps {}
 
@@ -16,9 +16,9 @@ type InputRef = React.RefObject<HTMLInputElement>;
 
 export const ForgotPassword: FC<ForgotPasswordProps> = () => {
 	const [value, setValue] = useState<string>('');
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-	const { loading, error } = useSelector((state: RootState) => state.auth);
+	const { loading, error } = useAppSelector((state: RootState) => state.auth);
 
 	const inputRef = useRef<HTMLInputElement>(null);
 
@@ -28,7 +28,6 @@ export const ForgotPassword: FC<ForgotPasswordProps> = () => {
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		// @ts-ignore
 		dispatch(forgotPassword(value)).then((result: any) => {
 			if (result.type === forgotPassword.fulfilled.type) {
 				navigate('/reset-password', { replace: true });

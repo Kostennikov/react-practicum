@@ -1,7 +1,7 @@
 import React, { useState, useRef, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import s from './reset-password.module.scss';
 import {
 	Input,
@@ -9,16 +9,16 @@ import {
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { resetPassword } from '../../../services/auth/reducer';
-import type { RootState } from '../../../types/types';
+import { RootState, AppDispatch } from '../../../types/types';
 
 export const ResetPassword: React.FC = () => {
 	const [password, setPassword] = useState<string>('');
 	const [token, setToken] = useState<string>('');
 
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 
-	const { loading, error } = useSelector((state: RootState) => state.auth);
+	const { loading, error } = useAppSelector((state: RootState) => state.auth);
 
 	const inputRef = useRef<HTMLInputElement>(null);
 
@@ -31,7 +31,6 @@ export const ResetPassword: React.FC = () => {
 	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
-		// @ts-ignore
 		dispatch(resetPassword({ password, token })).then((result: any) => {
 			if (result.type === resetPassword.fulfilled.type) {
 				navigate('/login', { replace: true });

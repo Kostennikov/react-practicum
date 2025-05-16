@@ -1,14 +1,14 @@
 import React, { FC, useEffect, useState, useRef } from 'react';
 import { clsx } from 'clsx';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import s from './profile.module.scss';
 import {
 	Input,
 	Button,
 } from '@ya.praktikum/react-developer-burger-ui-components';
 import { ProfileMenu } from '../../../components/profile-menu/profile-menu';
-import { getUser, updateUser } from '../../../services/auth/reducer.js';
-import { RootState, User } from '../../../types/types';
+import { getUser, updateUser } from '../../../services/auth/reducer';
+import { RootState, User, AppDispatch } from '../../../types/types';
 
 interface ProfileProps {}
 
@@ -21,8 +21,8 @@ interface UpdateUserPayload {
 }
 
 export const Profile: FC<ProfileProps> = () => {
-	const dispatch = useDispatch();
-	const { user, loading, error } = useSelector(
+	const dispatch = useAppDispatch();
+	const { user, loading, error } = useAppSelector(
 		(state: RootState) => state.auth
 	);
 
@@ -45,7 +45,6 @@ export const Profile: FC<ProfileProps> = () => {
 	// Загружаем данные пользователя при монтировании
 	useEffect(() => {
 		if (!user) {
-			// @ts-ignore
 			dispatch(getUser());
 		}
 	}, [dispatch, user]);
@@ -77,7 +76,6 @@ export const Profile: FC<ProfileProps> = () => {
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		// @ts-ignore
 		dispatch(updateUser({ name, email, password: password || undefined })).then(
 			() => {
 				setIsEditingName(false);
@@ -104,7 +102,7 @@ export const Profile: FC<ProfileProps> = () => {
 			<div className={clsx(s.container)}>
 				<div className={clsx(s.profile__wrapper)}>
 					<ProfileMenu />
-					<div className={clsx(s.profile__content)}>
+					<div className={clsx(s.profile__content, 'mt-30')}>
 						{user ? (
 							<form onSubmit={handleSubmit}>
 								<Input
