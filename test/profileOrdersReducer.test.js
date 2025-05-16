@@ -2,7 +2,7 @@ import { profileOrdersReducer } from '../src/services/profile-orders/reducer';
 import { wsActionTypes } from '../src/services/websocket/actions';
 
 // Начальное состояние
-const initialState = profileOrdersReducer(undefined, {});
+const initialState = profileOrdersReducer(undefined, { type: '' });
 
 // Пример заказов для тестов
 const mockOrders = [
@@ -55,7 +55,7 @@ describe('profileOrdersReducer', () => {
 	});
 
 	it('should return the initial state', () => {
-		expect(profileOrdersReducer(undefined, {})).toEqual(initialState);
+		expect(profileOrdersReducer(undefined, { type: '' })).toEqual(initialState);
 	});
 
 	describe('WebSocket actions', () => {

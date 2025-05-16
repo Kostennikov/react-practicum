@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { useNavigate, useLocation } from 'react-router-dom'; // Добавляем useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useDrop, DropTargetMonitor } from 'react-dnd';
 import {
@@ -159,13 +159,6 @@ export const BurgerConstructor: React.FC = () => {
 		dispatch(createOrder(ingredientIds));
 	}, [dispatch, navigate, user, bun, burgerIngredients]);
 
-	// Очищаем state.order при монтировании на главной странице
-	// useEffect(() => {
-	// 	if (location.pathname === '/') {
-	// 		dispatch(clearOrder());
-	// 	}
-	// }, [dispatch, location.pathname]);
-
 	// Открываем модальное окно только после успешного создания заказа
 	useEffect(() => {
 		if (order && !loading && !error) {
@@ -181,24 +174,27 @@ export const BurgerConstructor: React.FC = () => {
 
 	return (
 		<>
-			<section className={clsx(s.constructor)}>
+			<section className={clsx(s.constructor)} data-testid='burger-constructor'>
 				<div className={clsx(s.constructor__wrapper)}>
 					{/* Верхняя булочка */}
 					<div
 						ref={topBunDropRef}
+						data-testid='bun-top'
 						className={clsx(s.dropZone, {
 							[s.dropZoneActive]: isOverTopBun,
 							[s.dropZoneCanDrop]: canDropTopBun && !isOverTopBun,
 						})}>
 						{bun ? (
 							<div className={clsx(s.dropZone__bun, 'pl-8')}>
-								<ConstructorElement
-									type='top'
-									isLocked={true}
-									text={`${bun.name} (верх)`}
-									price={bun.price}
-									thumbnail={bun.image}
-								/>
+								<div data-testid='bun-top-element'>
+									<ConstructorElement
+										type='top'
+										isLocked={true}
+										text={`${bun.name} (верх)`}
+										price={bun.price}
+										thumbnail={bun.image}
+									/>
+								</div>
 							</div>
 						) : (
 							<div
@@ -215,12 +211,15 @@ export const BurgerConstructor: React.FC = () => {
 					{/* Список ингредиентов */}
 					<div
 						ref={dropRef}
+						data-testid='constructor-ingredients'
 						className={clsx(s.dropZone, {
 							[s.dropZoneActive]: isOverIngredient,
 							[s.dropZoneCanDrop]: canDropIngredient && !isOverIngredient,
 						})}>
 						{burgerIngredients && burgerIngredients.length > 0 && (
-							<ul className={clsx(s.constructor__list)}>
+							<ul
+								className={clsx(s.constructor__list)}
+								data-testid='constructor-ingredients-list'>
 								{burgerIngredients.map((item: Ingredient, index: number) => (
 									<DraggableIngredient
 										key={item.uid}
@@ -245,19 +244,23 @@ export const BurgerConstructor: React.FC = () => {
 					{/* Нижняя булочка */}
 					<div
 						ref={bottomBunDropRef}
+						data-testid='bun-bottom'
 						className={clsx(s.dropZone, {
 							[s.dropZoneActive]: isOverBottomBun,
 							[s.dropZoneCanDrop]: canDropBottomBun && !isOverBottomBun,
 						})}>
 						{bun ? (
 							<div className={clsx(s.dropZone__bun, 'pl-8')}>
-								<ConstructorElement
-									type='bottom'
-									isLocked={true}
-									text={`${bun.name} (низ)`}
-									price={bun.price}
-									thumbnail={bun.image}
-								/>
+								<div data-testid='bun-bottom-element'>
+									<ConstructorElement
+										type='bottom'
+										isLocked={true}
+										text={`${bun.name} (низ)`}
+										price={bun.price}
+										thumbnail={bun.image}
+										data-testid='bun-bottom-element'
+									/>
+								</div>
 							</div>
 						) : (
 							<div
@@ -289,14 +292,16 @@ export const BurgerConstructor: React.FC = () => {
 								</p>
 								<CurrencyIcon type='primary' />
 							</div>
-							<Button
-								htmlType='button'
-								type='primary'
-								size='large'
-								onClick={handleOrderSubmit}
-								disabled={!bun || burgerIngredients.length === 0}>
-								{loading ? 'Оформление...' : 'Оформить заказ'}
-							</Button>
+							<div data-testid='order-button'>
+								<Button
+									htmlType='button'
+									type='primary'
+									size='large'
+									onClick={handleOrderSubmit}
+									disabled={!bun || burgerIngredients.length === 0}>
+									{loading ? 'Оформление...' : 'Оформить заказ'}
+								</Button>
+							</div>
 						</div>
 					</div>
 

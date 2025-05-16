@@ -6,7 +6,7 @@ import {
 } from '../src/services/order/reducer';
 
 // Начальное состояние
-const initialState = orderReducer(undefined, {});
+const initialState = orderReducer(undefined, { type: '' });
 
 // Пример заказа для тестов
 const mockOrder = {
@@ -33,7 +33,7 @@ describe('orderReducer', () => {
 	});
 
 	it('should return the initial state', () => {
-		expect(orderReducer(undefined, {})).toEqual(initialState);
+		expect(orderReducer(undefined, { type: '' })).toEqual(initialState);
 	});
 
 	describe('Synchronous actions', () => {

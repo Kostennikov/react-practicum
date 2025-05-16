@@ -4,7 +4,7 @@ import {
 } from '../src/services/ingredients/reducer';
 
 // Начальное состояние
-const initialState = ingredientsReducer(undefined, {});
+const initialState = ingredientsReducer(undefined, { type: '' });
 
 // Пример ингредиента для тестов
 const mockIngredients = [
@@ -49,7 +49,7 @@ describe('ingredientsReducer', () => {
 	});
 
 	it('should return the initial state', () => {
-		expect(ingredientsReducer(undefined, {})).toEqual(initialState);
+		expect(ingredientsReducer(undefined, { type: '' })).toEqual(initialState);
 	});
 
 	describe('fetchIngredients', () => {

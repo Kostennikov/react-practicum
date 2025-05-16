@@ -1,4 +1,6 @@
 import { BASE_URL } from '../config';
+import { refreshToken } from '../services/auth/reducer';
+
 export interface ApiResponse<T> {
 	success: boolean;
 	data?: T;
@@ -55,7 +57,8 @@ export async function request<T>(
 	const url = `${BASE_URL}${endpoint}`;
 
 	const makeRequest = async (customOptions: RequestOptions) => {
-		const token = getCookie('accessToken');
+		const token =
+			getCookie('accessToken') || localStorage.getItem('accessToken');
 
 		const res = await fetch(url, {
 			...customOptions,
@@ -67,7 +70,7 @@ export async function request<T>(
 					: undefined,
 			headers: {
 				'Content-Type': 'application/json',
-				...(token ? { Authorization: token } : {}),
+				...(token ? { Authorization: `Bearer ${token}` } : {}),
 				...customOptions.headers,
 			},
 		});
@@ -79,11 +82,20 @@ export async function request<T>(
 	} catch (error: any) {
 		if (error.message.includes('403') && dispatch) {
 			try {
-				const { refreshToken } = await import('../services/auth/reducer');
 				const refreshResult = await dispatch(refreshToken()).unwrap();
 				if (!refreshResult.accessToken) {
 					throw new Error('Не удалось обновить токен');
 				}
+
+				// Сохраняем новый токен
+				localStorage.setItem(
+					'accessToken',
+					refreshResult.accessToken.replace('Bearer ', '')
+				);
+				document.cookie = `accessToken=${refreshResult.accessToken.replace(
+					'Bearer ',
+					''
+				)}; path=/`;
 
 				const newOptions = {
 					...options,

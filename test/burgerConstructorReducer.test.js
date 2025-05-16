@@ -15,7 +15,7 @@ jest.mock('@reduxjs/toolkit', () => ({
 }));
 
 // Начальное состояние
-const initialState = burgerConstructorReducer(undefined, {});
+const initialState = burgerConstructorReducer(undefined, { type: '' });
 
 // Пример ингредиентов для тестов
 const mockBun = {
@@ -71,7 +71,9 @@ describe('burgerConstructorReducer', () => {
 	});
 
 	it('should return the initial state', () => {
-		expect(burgerConstructorReducer(undefined, {})).toEqual(initialState);
+		expect(burgerConstructorReducer(undefined, { type: '' })).toEqual(
+			initialState
+		);
 	});
 
 	describe('Synchronous actions', () => {

@@ -28,7 +28,7 @@ export const Home: FC<HomeProps> = () => {
 	if (!ingredients.length) return <p>Данные недоступны</p>;
 
 	return (
-		<main className={clsx(s.main)}>
+		<main className={clsx(s.main)} data-testid='home-page'>
 			<div className={clsx(s.container)}>
 				<h1 className='text text_type_main-large mb-5'>Соберите бургер</h1>
 				<div className={clsx(s.main__wrapper)}>

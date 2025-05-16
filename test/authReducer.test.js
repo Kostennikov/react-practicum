@@ -14,7 +14,7 @@ global.localStorage = {
 };
 
 // Получаем начальное состояние
-const initialState = authReducer(undefined, {});
+const initialState = authReducer(undefined, { type: '' });
 
 describe('authReducer', () => {
 	beforeEach(() => {
@@ -27,7 +27,7 @@ describe('authReducer', () => {
 	});
 
 	it('should return the initial state', () => {
-		expect(authReducer(undefined, {})).toEqual(initialState);
+		expect(authReducer(undefined, { type: '' })).toEqual(initialState);
 	});
 
 	describe('Synchronous actions', () => {

@@ -6,7 +6,7 @@ import {
 import { fetchOrderByNumber } from '../src/services/order/reducer';
 
 // Начальное состояние
-const initialState = pendingOrderReducer(undefined, {});
+const initialState = pendingOrderReducer(undefined, { type: '' });
 
 // Пример ингредиентов и заказа для тестов
 const mockBun = {
@@ -57,7 +57,7 @@ const mockOrder = {
 
 describe('pendingOrderReducer', () => {
 	it('should return the initial state', () => {
-		expect(pendingOrderReducer(undefined, {})).toEqual(initialState);
+		expect(pendingOrderReducer(undefined, { type: '' })).toEqual(initialState);
 	});
 
 	describe('Synchronous actions', () => {

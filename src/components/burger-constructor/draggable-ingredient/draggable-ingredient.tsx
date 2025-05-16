@@ -15,7 +15,6 @@ import {
 	clearSingleIngredient,
 } from '../../../services/single-ingredient/reducer';
 import s from './draggable-ingredient.module.scss';
-
 import { DraggableIngredientProps } from '../../../types/types';
 
 export const DraggableIngredient: FC<DraggableIngredientProps> = ({
@@ -90,7 +89,8 @@ export const DraggableIngredient: FC<DraggableIngredientProps> = ({
 		<li
 			ref={ref}
 			className={clsx(s.constructor__item)}
-			style={{ opacity: opacity, cursor: dragCursor }}>
+			style={{ opacity: opacity, cursor: dragCursor }}
+			data-testid={`constructor-ingredient-${item._id}`}>
 			<DragIcon type='primary' />
 			<ConstructorElement
 				text={item.name}

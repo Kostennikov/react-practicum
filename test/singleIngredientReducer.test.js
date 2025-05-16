@@ -5,7 +5,7 @@ import {
 } from '../src/services/single-ingredient/reducer';
 
 // Начальное состояние
-const initialState = singleIngredientReducer(undefined, {});
+const initialState = singleIngredientReducer(undefined, { type: '' });
 
 // Пример ингредиента для тестов
 const mockIngredient = {
@@ -25,7 +25,9 @@ const mockIngredient = {
 
 describe('singleIngredientReducer', () => {
 	it('should return the initial state', () => {
-		expect(singleIngredientReducer(undefined, {})).toEqual(initialState);
+		expect(singleIngredientReducer(undefined, { type: '' })).toEqual(
+			initialState
+		);
 	});
 
 	describe('Synchronous actions', () => {

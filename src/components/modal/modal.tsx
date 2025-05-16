@@ -9,7 +9,6 @@ interface ModalProps {
 	onClose: () => void;
 }
 
-// Типизация modalRoot
 const modalRoot = document.getElementById('react-modals') as HTMLElement;
 
 export const Modal: React.FC<PropsWithChildren<ModalProps>> = ({
@@ -30,16 +29,25 @@ export const Modal: React.FC<PropsWithChildren<ModalProps>> = ({
 	return createPortal(
 		<>
 			<ModalOverlay onClose={onClose} />
-			<section className={clsx(s.modal)}>
+			<section className={clsx(s.modal)} data-testid='modal'>
 				<div className={clsx(s.modal__wrapper)}>
 					<div className={clsx(s.modal__header)}>
-						<CloseIcon
-							type='primary'
+						{/* <div
+							data-testid='modal-close-button'
+							className={clsx(s.modal__close)}>
+							<CloseIcon
+								type='primary'
+								onClick={onClose}
+								role='button'
+								tabIndex={0}
+							/>
+						</div> */}
+						<button
 							className={clsx(s.modal__close)}
 							onClick={onClose}
-							role='button'
-							tabIndex={0}
-						/>
+							data-testid='modal-close-button'>
+							<CloseIcon type='primary' role='button' tabIndex={0} />
+						</button>
 					</div>
 					<div>{children}</div>
 				</div>

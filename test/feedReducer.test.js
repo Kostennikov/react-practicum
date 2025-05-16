@@ -2,7 +2,7 @@ import { feedReducer } from '../src/services/feed/reducer';
 import { wsActionTypes } from '../src/services/websocket/actions';
 
 // Начальное состояние
-const initialState = feedReducer(undefined, {});
+const initialState = feedReducer(undefined, { type: '' });
 
 // Пример заказов для тестов
 const mockOrders = [
@@ -57,7 +57,7 @@ describe('feedReducer', () => {
 	});
 
 	it('should return the initial state', () => {
-		expect(feedReducer(undefined, {})).toEqual(initialState);
+		expect(feedReducer(undefined, { type: '' })).toEqual(initialState);
 	});
 
 	describe('WebSocket actions', () => {
