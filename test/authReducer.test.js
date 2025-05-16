@@ -1,3 +1,11 @@
+// Мокаем store.ts, чтобы избежать ошибки с undefined reducer
+jest.mock('../src/services/store', () => ({
+	store: {
+		getState: jest.fn(),
+		dispatch: jest.fn(),
+	},
+}));
+
 import {
 	authReducer,
 	setUser,
@@ -6,15 +14,15 @@ import {
 	syncAccessToken,
 } from '../src/services/auth/reducer';
 
+// Получаем начальное состояние
+const initialState = authReducer(undefined, { type: '' });
+
 // Мокаем localStorage
 global.localStorage = {
 	getItem: jest.fn(),
 	setItem: jest.fn(),
 	removeItem: jest.fn(),
 };
-
-// Получаем начальное состояние
-const initialState = authReducer(undefined, { type: '' });
 
 describe('authReducer', () => {
 	beforeEach(() => {
@@ -27,7 +35,7 @@ describe('authReducer', () => {
 	});
 
 	it('should return the initial state', () => {
-		expect(authReducer(undefined, { type: '' })).toEqual(initialState);
+		expect(authReducer(undefined, {})).toEqual(initialState);
 	});
 
 	describe('Synchronous actions', () => {
@@ -76,7 +84,7 @@ describe('authReducer', () => {
 				refreshToken: null,
 				loading: false,
 				error: null,
-				authChecked: true, // Исправлено с false на true
+				authChecked: true,
 				resetPasswordAllowed: false,
 			};
 			expect(authReducer(state, action)).toEqual(expectedState);
@@ -269,7 +277,7 @@ describe('authReducer', () => {
 				refreshToken: null,
 				loading: false,
 				error: null,
-				authChecked: true, // Исправлено с false на true
+				authChecked: true,
 				resetPasswordAllowed: false,
 			};
 			expect(authReducer(state, action)).toEqual(expectedState);

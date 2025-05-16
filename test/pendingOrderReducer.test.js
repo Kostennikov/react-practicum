@@ -1,3 +1,11 @@
+// Мокаем store.ts, чтобы избежать ошибки с undefined reducer
+jest.mock('../src/services/store', () => ({
+	store: {
+		getState: jest.fn(),
+		dispatch: jest.fn(),
+	},
+}));
+
 import {
 	pendingOrderReducer,
 	setPendingOrder,
