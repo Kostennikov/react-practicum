@@ -1,7 +1,9 @@
 import { BASE_URL } from '../config';
 import { refreshToken } from '../services/auth/reducer';
+import { store } from '../services/store'; // Импортируйте ваш Redux store
 
-export interface ApiResponse<T> {
+// Тип для ответа от сервера (общий)
+interface ApiResponse<T> {
 	success: boolean;
 	data?: T;
 	message?: string;
@@ -13,7 +15,8 @@ export interface ApiResponse<T> {
 	name?: string;
 }
 
-export interface RequestOptions extends Omit<RequestInit, 'body'> {
+// Тип для опций запроса
+interface RequestOptions extends Omit<RequestInit, 'body'> {
 	method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
 	headers?: Record<string, string>;
 	body?: Record<string, unknown> | string;
@@ -51,14 +54,12 @@ export async function checkResponse<T>(res: Response): Promise<ApiResponse<T>> {
 
 export async function request<T>(
 	endpoint: string,
-	options: RequestOptions = {},
-	dispatch?: any
+	options: RequestOptions = {}
 ): Promise<ApiResponse<T>> {
 	const url = `${BASE_URL}${endpoint}`;
 
 	const makeRequest = async (customOptions: RequestOptions) => {
-		const token =
-			getCookie('accessToken') || localStorage.getItem('accessToken');
+		const token = getCookie('accessToken');
 
 		const res = await fetch(url, {
 			...customOptions,
@@ -70,7 +71,7 @@ export async function request<T>(
 					: undefined,
 			headers: {
 				'Content-Type': 'application/json',
-				...(token ? { Authorization: `Bearer ${token}` } : {}),
+				...(token ? { Authorization: token } : {}),
 				...customOptions.headers,
 			},
 		});
@@ -80,22 +81,12 @@ export async function request<T>(
 	try {
 		return await makeRequest(options);
 	} catch (error: any) {
-		if (error.message.includes('403') && dispatch) {
+		if (error.message.includes('403')) {
 			try {
-				const refreshResult = await dispatch(refreshToken()).unwrap();
+				const refreshResult = await store.dispatch(refreshToken()).unwrap();
 				if (!refreshResult.accessToken) {
 					throw new Error('Не удалось обновить токен');
 				}
-
-				// Сохраняем новый токен
-				localStorage.setItem(
-					'accessToken',
-					refreshResult.accessToken.replace('Bearer ', '')
-				);
-				document.cookie = `accessToken=${refreshResult.accessToken.replace(
-					'Bearer ',
-					''
-				)}; path=/`;
 
 				const newOptions = {
 					...options,

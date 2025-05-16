@@ -8,8 +8,8 @@ import {
 	PASSWORD_RESET_ENDPOINT,
 	PASSWORD_RESET_CONFIRM_ENDPOINT,
 } from '../../config';
-import { request, ApiResponse } from '../../utils/api';
-import { AuthState, RootState, AppDispatch } from '../../types/types';
+import { request } from '../../utils/api';
+import { AuthState, RootState } from '../../types/types';
 
 // Утилиты для работы с куками
 const setCookie = (
@@ -47,20 +47,8 @@ const deleteCookie = (name: string) => {
 	setCookie(name, '', { expires: -1 });
 };
 
-// Тип для ответа авторизации
-interface AuthResponse {
-	success: boolean;
-	user: { email: string; name: string };
-	accessToken: string;
-	refreshToken: string;
-}
-
 // Регистрация
-export const registerUser = createAsyncThunk<
-	AuthResponse,
-	{ email: string; password: string; name: string },
-	{ dispatch: AppDispatch; state: RootState }
->(
+export const registerUser = createAsyncThunk(
 	'auth/registerUser',
 	async (
 		{
@@ -68,42 +56,22 @@ export const registerUser = createAsyncThunk<
 			password,
 			name,
 		}: { email: string; password: string; name: string },
-		{ dispatch, rejectWithValue }
+		{ rejectWithValue }
 	) => {
 		try {
-			const response = await request<{
-				success: boolean;
-				user: { email: string; name: string };
-				accessToken: string;
-				refreshToken: string;
-			}>(
-				AUTH_REGISTER_ENDPOINT,
-				{
-					method: 'POST',
-					body: JSON.stringify({ email, password, name }),
-				},
-				dispatch
-			);
+			const data = await request(AUTH_REGISTER_ENDPOINT, {
+				method: 'POST',
+				body: JSON.stringify({ email, password, name }),
+			});
 
-			if (
-				!response.success ||
-				!response.accessToken ||
-				!response.refreshToken ||
-				!response.user
-			) {
-				throw new Error('Ошибка регистрации: некорректный ответ сервера');
+			if (!data.accessToken || !data.refreshToken) {
+				throw new Error('Токены не получены');
 			}
-
-			setCookie('accessToken', response.accessToken.split('Bearer ')[1], {
+			setCookie('accessToken', data.accessToken.split('Bearer ')[1], {
 				expires: 20 * 60,
 			});
-			localStorage.setItem('refreshToken', response.refreshToken);
-			return {
-				success: response.success,
-				user: response.user,
-				accessToken: response.accessToken,
-				refreshToken: response.refreshToken,
-			};
+			localStorage.setItem('refreshToken', data.refreshToken);
+			return data;
 		} catch (error: any) {
 			return rejectWithValue(error.message);
 		}
@@ -111,50 +79,26 @@ export const registerUser = createAsyncThunk<
 );
 
 // Авторизация
-export const loginUser = createAsyncThunk<
-	AuthResponse,
-	{ email: string; password: string },
-	{ dispatch: AppDispatch; state: RootState }
->(
+export const loginUser = createAsyncThunk(
 	'auth/loginUser',
 	async (
 		{ email, password }: { email: string; password: string },
-		{ dispatch, rejectWithValue }
+		{ rejectWithValue }
 	) => {
 		try {
-			const response = await request<{
-				success: boolean;
-				user: { email: string; name: string };
-				accessToken: string;
-				refreshToken: string;
-			}>(
-				AUTH_LOGIN_ENDPOINT,
-				{
-					method: 'POST',
-					body: JSON.stringify({ email, password }),
-				},
-				dispatch
-			);
+			const data = await request(AUTH_LOGIN_ENDPOINT, {
+				method: 'POST',
+				body: JSON.stringify({ email, password }),
+			});
 
-			if (
-				!response.success ||
-				!response.accessToken ||
-				!response.refreshToken ||
-				!response.user
-			) {
-				throw new Error('Ошибка авторизации: некорректный ответ сервера');
+			if (!data.accessToken || !data.refreshToken) {
+				throw new Error('Токены не получены');
 			}
-
-			setCookie('accessToken', response.accessToken.split('Bearer ')[1], {
+			setCookie('accessToken', data.accessToken.split('Bearer ')[1], {
 				expires: 20 * 60,
 			});
-			localStorage.setItem('refreshToken', response.refreshToken);
-			return {
-				success: response.success,
-				user: response.user,
-				accessToken: response.accessToken,
-				refreshToken: response.refreshToken,
-			};
+			localStorage.setItem('refreshToken', data.refreshToken);
+			return data;
 		} catch (error: any) {
 			return rejectWithValue(error.message);
 		}
@@ -162,76 +106,51 @@ export const loginUser = createAsyncThunk<
 );
 
 // Выход
-export const logoutUser = createAsyncThunk<
-	{ success: boolean },
-	void,
-	{ dispatch: AppDispatch; state: RootState }
->('auth/logoutUser', async (_, { dispatch, rejectWithValue }) => {
-	try {
-		const refreshToken = localStorage.getItem('refreshToken');
-		if (!refreshToken) throw new Error('Токен обновления отсутствует');
+export const logoutUser = createAsyncThunk(
+	'auth/logoutUser',
+	async (_, { rejectWithValue }) => {
+		try {
+			const refreshToken = localStorage.getItem('refreshToken');
+			if (!refreshToken) throw new Error('Токен обновления отсутствует');
 
-		const response = await request<{ success: boolean }>(
-			AUTH_LOGOUT_ENDPOINT,
-			{
+			const data = await request(AUTH_LOGOUT_ENDPOINT, {
 				method: 'POST',
 				body: JSON.stringify({ token: refreshToken }),
-			},
-			dispatch
-		);
+			});
 
-		if (!response.success) {
-			throw new Error('Ошибка выхода: некорректный ответ сервера');
+			deleteCookie('accessToken');
+			localStorage.removeItem('refreshToken');
+			return data;
+		} catch (error: any) {
+			return rejectWithValue(error.message);
 		}
-		deleteCookie('accessToken');
-		localStorage.removeItem('refreshToken');
-		return response;
-	} catch (error: any) {
-		return rejectWithValue(error.message);
 	}
-});
+);
 
 // Получение данных пользователя
-export const getUser = createAsyncThunk<
-	{ email: string; name: string },
-	void,
-	{ dispatch: AppDispatch; state: RootState }
->('auth/getUser', async (_, { dispatch, rejectWithValue }) => {
-	try {
-		const accessToken = getCookie('accessToken');
-		if (!accessToken) throw new Error('Токен отсутствует');
+export const getUser = createAsyncThunk(
+	'auth/getUser',
+	async (_, { rejectWithValue }) => {
+		try {
+			const accessToken = getCookie('accessToken');
+			if (!accessToken) throw new Error('Токен отсутствует');
 
-		const response = await request<{
-			success: boolean;
-			user: { email: string; name: string };
-		}>(
-			AUTH_USER_ENDPOINT,
-			{
+			const data = await request(AUTH_USER_ENDPOINT, {
 				method: 'GET',
 				headers: {
 					Authorization: `Bearer ${accessToken}`,
 				},
-			},
-			dispatch
-		);
+			});
 
-		if (!response.success || !response.user) {
-			throw new Error(
-				'Ошибка получения пользователя: некорректный ответ сервера'
-			);
+			return data.user;
+		} catch (error: any) {
+			return rejectWithValue(error.message);
 		}
-		return response.user;
-	} catch (error: any) {
-		return rejectWithValue(error.message);
 	}
-});
+);
 
 // Обновление данных пользователя
-export const updateUser = createAsyncThunk<
-	{ email: string; name: string },
-	{ name: string; email: string; password?: string },
-	{ dispatch: AppDispatch; state: RootState }
->(
+export const updateUser = createAsyncThunk(
 	'auth/updateUser',
 	async (
 		{
@@ -239,7 +158,7 @@ export const updateUser = createAsyncThunk<
 			email,
 			password,
 		}: { name: string; email: string; password?: string },
-		{ dispatch, rejectWithValue }
+		{ rejectWithValue }
 	) => {
 		try {
 			const accessToken = getCookie('accessToken');
@@ -251,27 +170,15 @@ export const updateUser = createAsyncThunk<
 			};
 			if (password) body.password = password;
 
-			const response = await request<{
-				success: boolean;
-				user: { email: string; name: string };
-			}>(
-				AUTH_USER_ENDPOINT,
-				{
-					method: 'PATCH',
-					headers: {
-						Authorization: `Bearer ${accessToken}`,
-					},
-					body: JSON.stringify(body),
+			const data = await request(AUTH_USER_ENDPOINT, {
+				method: 'PATCH',
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
 				},
-				dispatch
-			);
+				body: JSON.stringify(body),
+			});
 
-			if (!response.success || !response.user) {
-				throw new Error(
-					'Ошибка обновления пользователя: некорректный ответ сервера'
-				);
-			}
-			return response.user;
+			return data.user;
 		} catch (error: any) {
 			return rejectWithValue(error.message);
 		}
@@ -279,167 +186,96 @@ export const updateUser = createAsyncThunk<
 );
 
 // Обновление токена
-export const refreshToken = createAsyncThunk<
-	{ accessToken: string; refreshToken: string },
-	void,
-	{ dispatch: AppDispatch; state: RootState }
->('auth/refreshToken', async (_, { dispatch, rejectWithValue }) => {
-	try {
-		const refreshToken = localStorage.getItem('refreshToken');
-		if (!refreshToken) throw new Error('Токен обновления отсутствует');
+export const refreshToken = createAsyncThunk(
+	'auth/refreshToken',
+	async (_, { rejectWithValue }) => {
+		try {
+			const refreshToken = localStorage.getItem('refreshToken');
+			if (!refreshToken) throw new Error('Токен обновления отсутствует');
 
-		const response = await request<{
-			success: boolean;
-			accessToken: string;
-			refreshToken: string;
-		}>(
-			AUTH_TOKEN_ENDPOINT,
-			{
+			const data = await request(AUTH_TOKEN_ENDPOINT, {
 				method: 'POST',
 				body: JSON.stringify({ token: refreshToken }),
-			},
-			dispatch
-		);
+			});
 
-		if (!response.success || !response.accessToken || !response.refreshToken) {
-			throw new Error('Ошибка обновления токена: некорректный ответ сервера');
+			if (!data.accessToken || !data.refreshToken) {
+				throw new Error('Токены не получены');
+			}
+			setCookie('accessToken', data.accessToken.split('Bearer ')[1], {
+				expires: 20 * 60,
+			});
+			localStorage.setItem('refreshToken', data.refreshToken);
+			return {
+				accessToken: data.accessToken,
+				refreshToken: data.refreshToken,
+			};
+		} catch (error: any) {
+			return rejectWithValue(error.message);
 		}
-		setCookie('accessToken', response.accessToken.split('Bearer ')[1], {
-			expires: 20 * 60,
-		});
-		localStorage.setItem('refreshToken', response.refreshToken);
-		return {
-			accessToken: response.accessToken,
-			refreshToken: response.refreshToken,
-		};
-	} catch (error: any) {
-		return rejectWithValue(error.message);
 	}
-});
+);
 
 // Проверка авторизации
-export const checkAuth = createAsyncThunk<
-	AuthResponse,
-	void,
-	{ dispatch: AppDispatch; state: RootState }
->('auth/checkAuth', async (_, { dispatch, rejectWithValue }) => {
-	try {
-		const accessToken = getCookie('accessToken');
-		if (!accessToken) {
-			const refreshResult = await dispatch(refreshToken()).unwrap();
-			if (!refreshResult.accessToken) {
-				throw new Error('Не удалось обновить токен');
+export const checkAuth = createAsyncThunk(
+	'auth/checkAuth',
+	async (_, { dispatch, rejectWithValue }) => {
+		try {
+			const accessToken = getCookie('accessToken');
+			if (!accessToken) {
+				const refreshResult = await dispatch(refreshToken()).unwrap();
+				if (!refreshResult.accessToken) {
+					console.error('checkAuth: Failed to refresh token');
+					throw new Error('Не удалось обновить токен');
+				}
 			}
-		}
 
-		const response = await request<{
-			success: boolean;
-			user: { email: string; name: string };
-			accessToken: string;
-			refreshToken: string;
-		}>(
-			AUTH_USER_ENDPOINT,
-			{
+			const data = await request(AUTH_USER_ENDPOINT, {
 				method: 'GET',
 				headers: {
 					Authorization: `Bearer ${getCookie('accessToken')}`,
 				},
-			},
-			dispatch
-		);
+			});
 
-		if (
-			!response.success ||
-			!response.user ||
-			!response.accessToken ||
-			!response.refreshToken
-		) {
-			throw new Error(
-				'Ошибка проверки авторизации: некорректный ответ сервера'
-			);
-		}
-
-		return {
-			success: response.success,
-			user: response.user,
-			accessToken: response.accessToken,
-			refreshToken: response.refreshToken,
-		};
-	} catch (error: any) {
-		if (error.message === 'Не удалось обновить токен') {
-			return rejectWithValue(error.message);
-		}
-
-		if (error.message.includes('401')) {
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-			const refreshResult = await dispatch(refreshToken()).unwrap();
-			if (!refreshResult.accessToken) {
-				throw new Error('Не удалось обновить токен');
+			return data;
+		} catch (error: any) {
+			if (error.message === 'Не удалось обновить токен') {
+				throw error;
 			}
 
-			const retryResponse = await request<{
-				success: boolean;
-				user: { email: string; name: string };
-				accessToken: string;
-				refreshToken: string;
-			}>(
-				AUTH_USER_ENDPOINT,
-				{
+			if (error.message.includes('401')) {
+				await new Promise((resolve) => setTimeout(resolve, 1000));
+				const refreshResult = await dispatch(refreshToken()).unwrap();
+				if (!refreshResult.accessToken) {
+					console.error('checkAuth: Failed to refresh token after 401');
+					throw new Error('Не удалось обновить токен');
+				}
+
+				const retryData = await request(AUTH_USER_ENDPOINT, {
 					method: 'GET',
 					headers: {
 						Authorization: `Bearer ${getCookie('accessToken')}`,
 					},
-				},
-				dispatch
-			);
+				});
 
-			if (
-				!retryResponse.success ||
-				!retryResponse.user ||
-				!retryResponse.accessToken ||
-				!retryResponse.refreshToken
-			) {
-				throw new Error(
-					'Ошибка повторной проверки авторизации: некорректный ответ сервера'
-				);
+				return retryData;
 			}
 
-			return {
-				success: retryResponse.success,
-				user: retryResponse.user,
-				accessToken: retryResponse.accessToken,
-				refreshToken: retryResponse.refreshToken,
-			};
+			throw error;
 		}
-
-		return rejectWithValue(error.message);
 	}
-});
+);
 
 // Запрос сброса пароля
-export const forgotPassword = createAsyncThunk<
-	{ success: boolean },
-	string,
-	{ dispatch: AppDispatch; state: RootState }
->(
+export const forgotPassword = createAsyncThunk(
 	'auth/forgotPassword',
-	async (email: string, { dispatch, rejectWithValue }) => {
+	async (email: string, { rejectWithValue }) => {
 		try {
-			const response = await request<{ success: boolean }>(
-				PASSWORD_RESET_ENDPOINT,
-				{
-					method: 'POST',
-					body: JSON.stringify({ email }),
-				},
-				dispatch
-			);
+			const data = await request(PASSWORD_RESET_ENDPOINT, {
+				method: 'POST',
+				body: JSON.stringify({ email }),
+			});
 
-			if (!response.success) {
-				throw new Error(
-					'Ошибка запроса сброса пароля: некорректный ответ сервера'
-				);
-			}
-			return response;
+			return data;
 		} catch (error: any) {
 			return rejectWithValue(error.message);
 		}
@@ -447,30 +283,19 @@ export const forgotPassword = createAsyncThunk<
 );
 
 // Подтверждение сброса пароля
-export const resetPassword = createAsyncThunk<
-	{ success: boolean },
-	{ password: string; token: string },
-	{ dispatch: AppDispatch; state: RootState }
->(
+export const resetPassword = createAsyncThunk(
 	'auth/resetPassword',
 	async (
 		{ password, token }: { password: string; token: string },
-		{ dispatch, rejectWithValue }
+		{ rejectWithValue }
 	) => {
 		try {
-			const response = await request<{ success: boolean }>(
-				PASSWORD_RESET_CONFIRM_ENDPOINT,
-				{
-					method: 'POST',
-					body: JSON.stringify({ password, token }),
-				},
-				dispatch
-			);
+			const data = await request(PASSWORD_RESET_CONFIRM_ENDPOINT, {
+				method: 'POST',
+				body: JSON.stringify({ password, token }),
+			});
 
-			if (!response.success) {
-				throw new Error('Ошибка сброса пароля: некорректный ответ сервера');
-			}
-			return response;
+			return data;
 		} catch (error: any) {
 			return rejectWithValue(error.message);
 		}
@@ -507,6 +332,7 @@ const authSlice = createSlice({
 		allowResetPassword: (state) => {
 			state.resetPasswordAllowed = true;
 		},
+		// Новое действие для синхронизации
 		syncAccessToken: (state) => {
 			const accessToken = getCookie('accessToken');
 			if (accessToken) {
@@ -522,9 +348,9 @@ const authSlice = createSlice({
 			})
 			.addCase(registerUser.fulfilled, (state, action) => {
 				state.loading = false;
-				state.user = action.payload.user;
-				state.accessToken = action.payload.accessToken;
-				state.refreshToken = action.payload.refreshToken;
+				state.user = action.payload.user ?? null;
+				state.accessToken = action.payload.accessToken ?? null;
+				state.refreshToken = action.payload.refreshToken ?? null;
 				state.authChecked = true;
 			})
 			.addCase(registerUser.rejected, (state, action) => {
@@ -538,9 +364,9 @@ const authSlice = createSlice({
 			})
 			.addCase(loginUser.fulfilled, (state, action) => {
 				state.loading = false;
-				state.user = action.payload.user;
-				state.accessToken = action.payload.accessToken;
-				state.refreshToken = action.payload.refreshToken;
+				state.user = action.payload.user ?? null;
+				state.accessToken = action.payload.accessToken ?? null;
+				state.refreshToken = action.payload.refreshToken ?? null;
 				state.authChecked = true;
 			})
 			.addCase(loginUser.rejected, (state, action) => {
@@ -568,8 +394,8 @@ const authSlice = createSlice({
 			})
 			.addCase(refreshToken.fulfilled, (state, action) => {
 				state.loading = false;
-				state.accessToken = action.payload.accessToken;
-				state.refreshToken = action.payload.refreshToken;
+				state.accessToken = action.payload.accessToken ?? null;
+				state.refreshToken = action.payload.refreshToken ?? null;
 			})
 			.addCase(refreshToken.rejected, (state, action) => {
 				state.loading = false;
@@ -582,9 +408,9 @@ const authSlice = createSlice({
 			})
 			.addCase(checkAuth.fulfilled, (state, action) => {
 				state.loading = false;
-				state.user = action.payload.user;
-				state.accessToken = action.payload.accessToken;
-				state.refreshToken = action.payload.refreshToken;
+				state.user = action.payload.user ?? null;
+				state.accessToken = action.payload.accessToken ?? state.accessToken;
+				state.refreshToken = action.payload.refreshToken ?? state.refreshToken;
 				state.authChecked = true;
 			})
 			.addCase(checkAuth.rejected, (state, action) => {
@@ -601,7 +427,7 @@ const authSlice = createSlice({
 			})
 			.addCase(getUser.fulfilled, (state, action) => {
 				state.loading = false;
-				state.user = action.payload;
+				state.user = action.payload ?? null;
 			})
 			.addCase(getUser.rejected, (state, action) => {
 				state.loading = false;
@@ -613,7 +439,7 @@ const authSlice = createSlice({
 			})
 			.addCase(updateUser.fulfilled, (state, action) => {
 				state.loading = false;
-				state.user = action.payload;
+				state.user = action.payload ?? null;
 			})
 			.addCase(updateUser.rejected, (state, action) => {
 				state.loading = false;
