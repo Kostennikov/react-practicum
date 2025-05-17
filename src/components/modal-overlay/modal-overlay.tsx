@@ -19,6 +19,7 @@ export const ModalOverlay: React.FC<ModalOverlayProps> = ({ onClose }) => {
 			onKeyDown={handleKeyDown}
 			role='button'
 			tabIndex={0}
+			data-testid='modal-overlay'
 		/>
 	);
 };

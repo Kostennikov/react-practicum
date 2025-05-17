@@ -2,7 +2,6 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { useAppSelector } from '../../hooks/redux';
 import { clsx } from 'clsx';
 import { Tab } from '@ya.praktikum/react-developer-burger-ui-components';
-// import { RootState } from '../../services/store';
 import { RootState, Ingredient } from '../../types/types';
 import { IngredientsGroup } from './ingredientsGroup/ingredients-group';
 import s from './burger-ingredients.module.scss';
@@ -107,7 +106,7 @@ export const BurgerIngredients: React.FC<BurgerIngredientsProps> = ({
 	}, []);
 
 	return (
-		<section className={clsx(s.ingredients)}>
+		<section className={clsx(s.ingredients)} data-testid='burger-ingredients'>
 			<div className={clsx(s.ingredients__tabs, 'mb-10')}>
 				<Tab
 					value='bun'

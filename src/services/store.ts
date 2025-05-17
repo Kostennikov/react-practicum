@@ -9,7 +9,7 @@ import pendingOrder from './pending-order/reducer';
 import feedSlice from './feed/reducer';
 import profileOrdersSlice from './profile-orders/reducer';
 import { socketMiddleware } from './middleware/socketMiddleware';
-import { wsActionTypes } from './websocket/actions'; // Исправленный импорт
+import { wsActionTypes } from './websocket/actions';
 
 export const store = configureStore({
 	reducer: {

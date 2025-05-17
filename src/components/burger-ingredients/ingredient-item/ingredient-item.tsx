@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import { useDrag, DragSourceMonitor } from 'react-dnd';
 import type { Identifier } from 'dnd-core';
-
 import { clsx } from 'clsx';
 import {
 	CurrencyIcon,
@@ -20,12 +19,10 @@ interface IngredientItemProps {
 	onIngredientClick: (id: string) => void;
 }
 
-// Типизация объекта item для useDrag
 interface DragItem {
 	ingredient: Ingredient;
 }
 
-// Типизация результата collect
 interface DragCollectedProps {
 	isDragging: boolean;
 	handlerId: Identifier | null;
@@ -80,19 +77,17 @@ export const IngredientItem: React.FC<IngredientItemProps> = ({
 				}
 			}}
 			tabIndex={0}
-			role='button'>
+			role='button'
+			data-testid={`ingredient-${ingredient._id}`}>
 			<Counter count={count} size='default' extraClass='m-1' />
-
 			<div className={clsx(s.ingredients__img)}>
 				<img src={ingredient.image} alt={ingredient.name} />
 			</div>
-
 			<p
 				className={clsx(s.ingredients__price, 'text text_type_digits-default')}>
 				{ingredient.price}
 				<CurrencyIcon type='primary' />
 			</p>
-
 			<p className={clsx(s.ingredients__text, 'text text_type_main-small')}>
 				{ingredient.name}
 			</p>
